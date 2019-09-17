@@ -1,0 +1,4 @@
+# C make files
+cmake-build-debug/
+# IDE files
+.idea/

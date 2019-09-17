@@ -1,4 +1,13 @@
-# C make files
-cmake-build-debug/
-# IDE files
+## IDE files
+#  CLion
 .idea/
+
+# CMake files
+cmake-build-debug/
+
+# Input and Output Files
+input*
+output*
+
+# a.out file
+a.out

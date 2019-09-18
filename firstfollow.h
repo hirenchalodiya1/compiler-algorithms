@@ -11,7 +11,7 @@
 
 
 class PredictiveParsingTable{
-public:
+private:
     CFG* gram;
     std::map<std::string, std::set<std::string>> first_;
     std::map<std::string, std::set<std::string>> follow_;

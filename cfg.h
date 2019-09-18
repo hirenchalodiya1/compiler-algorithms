@@ -6,15 +6,33 @@
 
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 #include <set>
 #include <algorithm>
 
+class Prod{
+private:
+    std::string left_;
+    std::vector<std::string> right_;
+public:
+    explicit Prod(std::string  left, std::vector<std::string>  right):left_(std::move(left)), right_(std::move(right)){}
+    std::string left(){return left_;}
+    std::vector<std::string> right(){return right_;}
+    bool is_exist_on_right(const std::string& str){
+        return std::find(right_.begin(), right_.end(), str) != right_.end();
+    }
+    friend std::ostream& operator <<(std::ostream& os, const Prod& p){
+        os << p.left_<< " -- ";
+        for(const std::string &i:p.right_){
+            os << i << " ";
+        }
+        return os;
+    }
+};
+
 class Rule{
 private:
-    // left_ part of production rule
-    // right_ part of production rule
-    // success valid production rule
     std::string left_;
     std::vector<std::vector<std::string>> right_;
     bool success_;
@@ -71,16 +89,13 @@ public:
             }
         }
     }
-//    size_t size(unsigned int right) const {
-//        return right_[right].size();
-//    }
     explicit operator bool(){
         return success_;
     }
-    const std::string& left() const{
+    const std::string& left(){
         return left_;
     }
-    const std::vector<std::vector<std::string>>& right() const{
+    const std::vector<std::vector<std::string>>& right(){
         return right_;
     }
     friend std::ostream& operator <<(std::ostream& os, const Rule& r){
@@ -101,13 +116,17 @@ public:
 class CFG{
 private:
     std::vector<Rule*> rules_;
+    std::vector<Prod*> prods_;
     std::string start_symbol_;
-    std::vector<std::string> terminals_;
+    std::set<std::string> terminals_;
     std::set<std::string> nonterminals_;
     std::set<std::string> symbols_;
+    std::string epsilon_;
 public:
-    explicit CFG(std::istream& is){
+    explicit CFG(std::istream& is, std::string e="ep"){
+        epsilon_ = std::move(e);
         std::string line;
+        // get all rules
         while (std::getline(is, line)) {
             line.erase(line.find_last_not_of("\r\n") + 1);
             if (!line.empty()) {
@@ -117,7 +136,9 @@ public:
                 }
             }
         }
+        // get start symbol
         start_symbol_ = rules_[0]->left();
+        // get all nonterminal symbols
         for(Rule* r: rules_){
             nonterminals_.insert(r->left());
             for(const std::vector<std::string>& i:r->right()){
@@ -126,49 +147,85 @@ public:
                 }
             }
         }
+        // get all terminal symbols
         for(const std::string& i:symbols_){
             if(nonterminals_.find(i) == nonterminals_.end()){
-                terminals_.push_back(i);
+                terminals_.insert(i);
+            }
+        }
+        // remove epsilon from terminal symbol
+        if(terminals_.find(epsilon_) != terminals_.end()){
+            terminals_.erase(epsilon_);
+        }
+        // convert rule to productions
+        _convert_rule_to_pord();
+    }
+    void _convert_rule_to_pord(){
+        for(Rule *r:rules_){
+            for(auto& right:r->right()){
+                prods_.emplace_back(new Prod(r->left(), right));
             }
         }
     }
-
-    std::vector<Rule*> rules() const{
-        return rules_;
+    std::vector<Prod*> prods() const{
+        return prods_;
     }
-    std::vector<std::string> terminals() const{
+    std::set<std::string> terminals() const{
         return terminals_;
     }
-    std::vector<std::string> nonterminals() const{
-        std::vector<std::string> vec;
-        for(const auto& i:nonterminals_){
-            vec.emplace_back(i);
-        }
-        return vec;
+    std::set<std::string> nonterminals() const{
+        return nonterminals_;
     }
     std::string start_symbol() const{
         return start_symbol_;
     }
-
-    //get all of the rules staring with str symbol
-    template <class Output>
-    Output get_rules_for_left(const std::string& str, Output it) const {
-        for(Rule* r:rules_){
-            if(r->left() == str){
-                *it++ = r;
-            }
-        }
-        return it;
+    std::string epsilon() const{
+        return epsilon_;
     }
 
+    //get all of the rules staring with str symbol
+    std::vector<Prod*> get_rules_for_left(const std::string& str) const {
+        std::vector<Prod*> prod;
+        for(Prod* p:prods()){
+            if(p->left() == str){
+                    prod.push_back(p);
+            }
+        }
+        return prod;
+    }
+    // get all production which contains string at right side
+    std::vector<Prod*> get_rules_for_right(const std::string& str) const{
+        std::vector<Prod*> prod;
+        for(Prod* p:prods()){
+            if(p->is_exist_on_right(str)){
+                prod.emplace_back(p);
+            }
+        }
+        return prod;
+    }
     bool is_terminal(const std::string& str) const{
-        return std::find(terminals_.begin(), terminals_.end(), str) != terminals_.end();
+        return terminals_.find(str) != terminals_.end();
     }
 
     // print
     friend std::ostream& operator <<(std::ostream& os, const CFG& gram){
+        os << "----------------------- Grammar -----------------------\n";
+        os << "Start Symbol --> " << gram.start_symbol_ << "\n";
+        os << "\nNon-Terminal Symbols:\n\t";
+        for(auto &i:gram.nonterminals_){
+            os << i << " ";
+        }
+        os << "\n\nTerminal Symbols:\n\t";
+        for(auto &i:gram.terminals_){
+            os << i << " ";
+        }
+        os << "\n\nRules:\n";
         for(Rule* r:gram.rules_){
             os << *r << '\n';
+        }
+        os << "\nProductions:\n";
+        for(Prod* p:gram.prods_){
+            os << *p << '\n';
         }
         return os;
     }

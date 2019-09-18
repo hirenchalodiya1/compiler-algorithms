@@ -11,3 +11,6 @@ output*
 
 # a.out file
 a.out
+
+# compiled header files
+*.h.gch

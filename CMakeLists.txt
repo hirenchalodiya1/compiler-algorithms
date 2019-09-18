@@ -3,4 +3,4 @@ project(compiler_algorithms)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(compiler_algorithms main.cpp cfg.h)
+add_executable(compiler_algorithms main.cpp cfg.h firstfollow.h)

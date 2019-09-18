@@ -1,6 +1,8 @@
 #include <iostream>
-#include "firstfollow.h"
+#include "predictiveparsing.h"
 #include <fstream>
+#include <vector>
+#include <string>
 using namespace std;
 int main(int n, char** c) {
     ifstream inFile;
@@ -14,9 +16,8 @@ int main(int n, char** c) {
         cout<<"File can not be opened\n";
         exit(1);
     }
-    PredictiveParsingTable table(inFile, "?");
-    ofstream outFile;
-    outFile.open("output", ios::out);
-    outFile << table;
+    PredictiveParsing parser(inFile, "?");
+    vector<string> st = {"d", "d"};
+    cout << parser.check_string(st);
     return 0;
 }

@@ -1,14 +1,25 @@
+//
+// Created by hiren on 17/09/19.
+//
 #ifndef COMPILER_ALGORITHMS_FIRSTFOLLOW_H
 #define COMPILER_ALGORITHMS_FIRSTFOLLOW_H
 
-#include <utility>
 #include <vector>
 #include <set>
 #include <map>
 #include <string>
 #include <iostream>
-#include "cfg.h"
+#include "../cfg.h"
 
+
+namespace firstfollow{
+    inline std::ostream& operator <<(std::ostream& os, const std::map<std::string, std::set<std::string>>& m){
+        for(const auto & i : m){
+            os << i.first << " --> "; spaceprint::operator<<(os,  i.second) << "\n";
+        }
+        return os;
+    }
+}
 
 class PredictiveParsingTable{
 private:
@@ -45,6 +56,9 @@ public:
         // fill table
         _fill_table();
     }
+    CFG* grammar(){
+        return gram;
+    }
     friend std::ostream& operator <<(std::ostream& os, const PredictiveParsingTable& parsingTable){
         for(auto& i:parsingTable.table){
             for(auto& j:i.second){
@@ -64,30 +78,21 @@ public:
     std::map<std::string , std::set<Prod*>>& operator [](const std::string& str){
         return table[str];
     }
-    CFG* grammar(){
-        return gram;
-    }
-    /*
-    void printFirst(){
-        for(auto &i:follow_){
-            std::cout << i.first << " --- ";
-            for(auto &j:i.second){
-                std::cout << j << " ";
-            }
-            std::cout << "\n";
-        }
-    }*/
+
 };
+
 void PredictiveParsingTable::_prepare_first() {
     for(auto&i:gram->nonterminals()){
         get_first(i);
     }
 }
+
 void PredictiveParsingTable::_prepare_follow() {
     for(auto&i:gram->nonterminals()){
         get_first(i);
     }
 }
+
 void PredictiveParsingTable::_fill_table() {
     for(const std::string& nt:gram->nonterminals()){
         // temp variable
@@ -114,6 +119,7 @@ void PredictiveParsingTable::_fill_table() {
         }
     }
 }
+
 std::set<std::string> PredictiveParsingTable::get_first(const std::vector<std::string>& prod){
     if(prod.size() == 1 and prod[0] == gram->epsilon()){
         return std::set<std::string>{gram->epsilon()};
@@ -140,6 +146,7 @@ std::set<std::string> PredictiveParsingTable::get_first(const std::vector<std::s
     if(ep)ans.insert(gram->epsilon());
     return ans;
 }
+
 std::set<std::string> PredictiveParsingTable::get_first(const std::string& symbol){
     // condition 1 if terminal
     if(gram->is_terminal(symbol)){
@@ -176,6 +183,7 @@ std::set<std::string> PredictiveParsingTable::get_first(const std::string& symbo
     first_[symbol] = ans;
     return ans;
 }
+
 std::set<std::string> PredictiveParsingTable::get_follow(const std::string& symbol){
     // Recursion condition
     if(follow_done.find(symbol) != follow_done.end()){

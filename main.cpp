@@ -1,5 +1,5 @@
 #include <iostream>
-#include "predictiveparsing.h"
+#include "syntex_analysis/topdownparser/predictiveparsing.h"
 #include <fstream>
 #include <vector>
 #include <string>
@@ -16,8 +16,18 @@ int main(int n, char** c) {
         cout<<"File can not be opened\n";
         exit(1);
     }
+    ifstream inFile1;
+    if(n < 3) {
+        inFile1.open("input", ios::in);
+    }
+    else{
+        inFile1.open(c[2], ios::in);
+    }
+    if(!inFile1.is_open()){
+        cout<<"File can not be opened\n";
+        exit(1);
+    }
     PredictiveParsing parser(inFile, "?");
-    vector<string> st = {"a"};
-    cout << parser.check_string(st);
+    parser.check_string(inFile1);
     return 0;
 }

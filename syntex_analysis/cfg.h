@@ -10,10 +10,12 @@
 #include <set>
 #include <algorithm>
 
+
 class Prod{
 private:
     std::string left_;
     std::vector<std::string> right_;
+
 public:
     explicit Prod(std::string  left, std::vector<std::string>  right):left_(std::move(left)), right_(std::move(right)){}
     std::string& left(){return left_;}
@@ -22,7 +24,7 @@ public:
         return std::find(right_.begin(), right_.end(), str) != right_.end();
     }
     friend std::ostream& operator <<(std::ostream& os, const Prod& p){
-        os << p.left_<< " -- ";
+        os << p.left_<< " --> ";
         for(const std::string &i:p.right_){
             os << i << " ";
         }
@@ -100,7 +102,7 @@ public:
         return right_;
     }
     friend std::ostream& operator <<(std::ostream& os, const Rule& r){
-        os << r.left_ << " -- ";
+        os << r.left_ << " --> ";
         unsigned int i = 0;
         for(const std::vector<std::string>& j:r.right_){
             for(const std::string& k:j){
@@ -113,6 +115,36 @@ public:
         return os;
     }
 };
+
+namespace spaceprint{
+    inline std::ostream& operator <<(std::ostream& os, const std::vector<std::string>& v){
+        for(const std::string& i:v){
+            os << i << ' ';
+        }
+        return os;
+    }
+    inline std::ostream& operator <<(std::ostream& os, const std::set<std::string>& s){
+        for(const std::string& i:s){
+            os << i << ' ';
+        }
+        return os;
+    }
+}
+
+namespace cfg{
+    inline std::ostream& operator <<(std::ostream& os, const std::vector<Prod*>& prods){
+        for(Prod* p:prods){
+            os << *p << '\n';
+        }
+        return os;
+    }
+    inline std::ostream& operator <<(std::ostream& os, const std::vector<Rule*>& rules){
+        for(Rule* r:rules){
+            os << *r << '\n';
+        }
+        return os;
+    }
+}
 
 class CFG{
 private:
@@ -168,9 +200,6 @@ public:
             }
         }
     }
-    std::vector<Prod*> prods() const{
-        return prods_;
-    }
     std::set<std::string> terminals() const{
         return terminals_;
     }
@@ -187,7 +216,7 @@ public:
     //get all of the rules staring with str symbol
     std::vector<Prod*> get_rules_for_left(const std::string& str) const {
         std::vector<Prod*> prod;
-        for(Prod* p:prods()){
+        for(Prod* p:prods_){
             if(p->left() == str){
                     prod.push_back(p);
             }
@@ -197,7 +226,7 @@ public:
     // get all production which contains string at right side
     std::vector<Prod*> get_rules_for_right(const std::string& str) const{
         std::vector<Prod*> prod;
-        for(Prod* p:prods()){
+        for(Prod* p:prods_){
             if(p->is_exist_on_right(str)){
                 prod.emplace_back(p);
             }
@@ -207,28 +236,19 @@ public:
     bool is_terminal(const std::string& str) const{
         return terminals_.find(str) != terminals_.end();
     }
-
-    // print
+    // pretty print
     friend std::ostream& operator <<(std::ostream& os, const CFG& gram){
-        os << "----------------------- Grammar -----------------------\n";
-        os << "Start Symbol --> " << gram.start_symbol_ << "\n";
-        os << "\nNon-Terminal Symbols:\n\t";
-        for(auto &i:gram.nonterminals_){
-            os << i << " ";
-        }
-        os << "\n\nTerminal Symbols:\n\t";
-        for(auto &i:gram.terminals_){
-            os << i << " ";
-        }
-        os << "\n\nRules:\n";
-        for(Rule* r:gram.rules_){
-            os << *r << '\n';
-        }
-        os << "\nProductions:\n";
-        for(Prod* p:gram.prods_){
-            os << *p << '\n';
-        }
+        using namespace cfg;
+        using namespace spaceprint;
+        os << "----------------------- Grammar -----------------------\n"
+        << "Start Symbol --> " << gram.start_symbol_ << "\n\n"
+        << "Non-Terminal Symbols:\n\t" << gram.nonterminals_ << "\n\n"
+        << "Terminal Symbols:\n\t" << gram.terminals_ << "\n\n"
+        << "Rules:\n" << gram.rules_ << "\n"
+        << "Productions:\n" << gram.prods_
+        << "-------------------------------------------------------\n";
         return os;
     }
 };
+
 #endif //COMPILER_ALGORITHMS_CFG_H

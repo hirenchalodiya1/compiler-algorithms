@@ -14,3 +14,6 @@ a.out
 
 # compiled header files
 *.h.gch
+
+# compiled cpp files
+*.o

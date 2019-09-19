@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <string>
-#include <utility>
 #include <vector>
 #include <set>
 #include <algorithm>
@@ -160,9 +159,9 @@ public:
             terminals_.erase(epsilon_);
         }
         // convert rule to productions
-        _convert_rule_to_pord();
+        _convert_rule_to_prod();
     }
-    void _convert_rule_to_pord(){
+    void _convert_rule_to_prod(){
         for(Rule *r:rules_){
             for(auto& right:r->right()){
                 prods_.emplace_back(new Prod(r->left(), right));

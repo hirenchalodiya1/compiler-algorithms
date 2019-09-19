@@ -9,7 +9,7 @@
 #include <map>
 #include <string>
 #include <iostream>
-#include "../cfg.h"
+#include "topdowngrammer.h"
 
 
 namespace firstfollow{
@@ -23,7 +23,7 @@ namespace firstfollow{
 
 class PredictiveParsingTable{
 private:
-    CFG* gram;
+    TopDownParsableGrammar* gram;
     std::map<std::string, std::set<std::string>> first_;
     std::map<std::string, std::set<std::string>> follow_;
     std::set<std::string> first_done;
@@ -39,7 +39,7 @@ private:
 public:
     explicit  PredictiveParsingTable(std::istream& is, std::string e = "ep"){
         // make grammar
-        gram = new CFG(is, std::move(e));
+        gram = new TopDownParsableGrammar(is, std::move(e));
         // make table with no value
         for(const std::string& nt:gram->nonterminals()){
             for(const std::string& t:gram->terminals()){

@@ -1,7 +1,6 @@
 #include <iostream>
 #include "syntex_analysis/topdownparser/predictiveparsing.h"
 #include <fstream>
-#include <vector>
 #include <string>
 using namespace std;
 int main(int n, char** c) {

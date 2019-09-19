@@ -30,13 +30,13 @@ bool PredictiveParsing::_check_string(std::vector<std::string> str, std::stack<s
         else if(table->grammar()->is_terminal(st.top())){
             return false;
         }
-        else if(table->table[st.top()][str[0]].empty()){
+        else if((*table)[st.top()][str[0]].empty()){
             return false;
         }
         else{
             auto top = st.top();
             st.pop();
-            for(auto i:table->table[top][str[0]]){
+            for(auto i:(*table)[top][str[0]]){
                 std::stack<std::string> temp = st;
                 for(int j = i->right().size()-1; j >= 0; --j){
                     temp.push(i->right()[j]);

@@ -17,6 +17,7 @@ private:
     std::map<std::string, std::set<std::string>> follow_;
     std::set<std::string> first_done;
     std::set<std::string> follow_done;
+    std::map<std::string, std::map<std::string, std::set<Prod*>>> table;
 
     void _fill_table();
     void _prepare_first();
@@ -25,7 +26,6 @@ private:
     std::set<std::string> get_first(const std::string& symbol);
     std::set<std::string> get_follow(const std::string& symbol);
 public:
-    std::map<std::string, std::map<std::string, std::set<Prod*>>> table;
     explicit  PredictiveParsingTable(std::istream& is, std::string e = "ep"){
         // make grammar
         gram = new CFG(is, std::move(e));
@@ -60,6 +60,9 @@ public:
             }
         }
         return os;
+    }
+    std::map<std::string , std::set<Prod*>>& operator [](const std::string& str){
+        return table[str];
     }
     CFG* grammar(){
         return gram;

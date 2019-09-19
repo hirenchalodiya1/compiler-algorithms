@@ -17,7 +17,7 @@ int main(int n, char** c) {
         exit(1);
     }
     PredictiveParsing parser(inFile, "?");
-    vector<string> st = {"d", "d"};
+    vector<string> st = {"a"};
     cout << parser.check_string(st);
     return 0;
 }

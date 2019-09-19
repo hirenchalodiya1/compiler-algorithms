@@ -17,8 +17,8 @@ private:
     std::vector<std::string> right_;
 public:
     explicit Prod(std::string  left, std::vector<std::string>  right):left_(std::move(left)), right_(std::move(right)){}
-    std::string left(){return left_;}
-    std::vector<std::string> right(){return right_;}
+    std::string& left(){return left_;}
+    std::vector<std::string>& right(){return right_;}
     bool is_exist_on_right(const std::string& str){
         return std::find(right_.begin(), right_.end(), str) != right_.end();
     }
@@ -65,6 +65,7 @@ public:
             ++i;
         }
         // right side
+        success_ = false;
         while(i < n){
             bool added = false;
             while(i < n && str[i] != '|'){
@@ -77,6 +78,7 @@ public:
                     if(!added){
                         right_.emplace_back(std::vector<std::string>());
                         added = true;
+                        success_ = true;
                     }
                     right_.back().push_back(symbol);
                 }
@@ -131,7 +133,7 @@ public:
             line.erase(line.find_last_not_of("\r\n") + 1);
             if (!line.empty()) {
                 Rule *r = new Rule(line);
-                if (r) {
+                if (*r) {
                     rules_.emplace_back(r);
                 }
             }

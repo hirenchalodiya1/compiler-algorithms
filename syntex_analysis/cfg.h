@@ -9,7 +9,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
-
+#include <map>
 
 class Prod{
 private:
@@ -116,16 +116,39 @@ public:
     }
 };
 
-namespace spaceprint{
-    inline std::ostream& operator <<(std::ostream& os, const std::vector<std::string>& v){
-        for(const std::string& i:v){
-            os << i << ' ';
+namespace prettyprint{
+    // TODO: make_default function should call automatic each time we use namespace
+    std::string line_start="";
+    std::string line_end=" ";
+    void make_default(){
+        line_start = "";
+        line_end = " ";
+    }
+    template <class T>
+    inline std::ostream& operator <<(std::ostream& os, const std::vector<T>& s){
+        for(const auto& i:s){
+            os << line_start << i << line_end;
         }
         return os;
     }
-    inline std::ostream& operator <<(std::ostream& os, const std::set<std::string>& s){
-        for(const std::string& i:s){
-            os << i << ' ';
+    template <class T>
+    inline std::ostream& operator <<(std::ostream& os, const std::vector<T*>& s){
+        for(auto *i:s){
+            os << line_start << *i << line_end;
+        }
+        return os;
+    }
+    template <class T>
+    inline std::ostream& operator <<(std::ostream& os, const std::set<T>& s){
+        for(const auto& i:s){
+            os << line_start << i << line_end;
+        }
+        return os;
+    }
+    template <class T>
+    inline std::ostream& operator <<(std::ostream& os, const std::set<T*>& s){
+        for(auto *i:s){
+            os << line_start << *i << line_end;
         }
         return os;
     }
@@ -144,61 +167,47 @@ namespace cfg{
         }
         return os;
     }
+    inline std::ostream& operator <<(std::ostream& os, const std::map<std::string, std::set<std::string>>& m){
+        for(const auto & i : m){
+            os << i.first << " --> "; prettyprint::operator<<(os,  i.second) << "\n";
+        }
+        return os;
+    }
 }
 
 class CFG{
 private:
-    std::vector<Rule*> rules_;
-    std::vector<Prod*> prods_;
-    std::string start_symbol_;
+    /* Grammar CFG(V, T, P, S) */
     std::set<std::string> terminals_;
     std::set<std::string> nonterminals_;
+    std::vector<Rule*> rules_;
+    std::string start_symbol_;
+    /* Additional Information */
     std::set<std::string> symbols_;
+    std::vector<Prod*> prods_;
     std::string epsilon_;
+    std::map<std::string, std::set<std::string>> first_;
+    std::map<std::string, std::set<std::string>> follow_;
+    /* helper data structures*/
+    std::set<std::string> first_done;
+    std::set<std::string> follow_done;
+    bool empty_;
+
+    /* define helper functions*/
+    // convert rules to productions
+    void _set_grammar(std::istream& is);
+    void _convert_rule_to_prod();
+    void _prepare_first();
+    void _prepare_follow();
 public:
-    explicit CFG(std::istream& is, std::string e="ep"){
-        epsilon_ = std::move(e);
-        std::string line;
-        // get all rules
-        while (std::getline(is, line)) {
-            line.erase(line.find_last_not_of("\r\n") + 1);
-            if (!line.empty()) {
-                Rule *r = new Rule(line);
-                if (*r) {
-                    rules_.emplace_back(r);
-                }
-            }
-        }
-        // get start symbol
-        start_symbol_ = rules_[0]->left();
-        // get all nonterminal symbols
-        for(Rule* r: rules_){
-            nonterminals_.insert(r->left());
-            for(const std::vector<std::string>& i:r->right()){
-                for(const std::string& j:i){
-                    symbols_.insert(j);
-                }
-            }
-        }
-        // get all terminal symbols
-        for(const std::string& i:symbols_){
-            if(nonterminals_.find(i) == nonterminals_.end()){
-                terminals_.insert(i);
-            }
-        }
-        // remove epsilon from terminal symbol
-        if(terminals_.find(epsilon_) != terminals_.end()){
-            terminals_.erase(epsilon_);
-        }
-        // convert rule to productions
-        _convert_rule_to_prod();
+    explicit CFG(std::string e="?"):epsilon_(std::move(e)){empty_=true;}
+    explicit CFG(std::istream& is,const std::string& e="?"){
+        empty_ = true;
+        epsilon_ = e;
+        _set_grammar(is);
     }
-    void _convert_rule_to_prod(){
-        for(Rule *r:rules_){
-            for(auto& right:r->right()){
-                prods_.emplace_back(new Prod(r->left(), right));
-            }
-        }
+    explicit operator bool(){
+        return !empty_;
     }
     std::set<std::string> terminals() const{
         return terminals_;
@@ -213,8 +222,14 @@ public:
         return epsilon_;
     }
 
-    //get all of the rules staring with str symbol
-    std::vector<Prod*> get_rules_for_left(const std::string& str) const {
+    /* define public functions */
+    std::set<std::string> get_first(const std::vector<std::string>& prod);
+    std::set<std::string> get_first(const std::string& symbol);
+    std::set<std::string> get_follow(const std::string& symbol);
+
+    /* define and declare public functions */
+    // get all of the rules staring with str symbol
+    std::vector<Prod*> get_rules_for_left(const std::string& str) const{
         std::vector<Prod*> prod;
         for(Prod* p:prods_){
             if(p->left() == str){
@@ -236,19 +251,209 @@ public:
     bool is_terminal(const std::string& str) const{
         return terminals_.find(str) != terminals_.end();
     }
-    // pretty print
     friend std::ostream& operator <<(std::ostream& os, const CFG& gram){
         using namespace cfg;
-        using namespace spaceprint;
+        using namespace prettyprint;
         os << "----------------------- Grammar -----------------------\n"
         << "Start Symbol --> " << gram.start_symbol_ << "\n\n"
         << "Non-Terminal Symbols:\n\t" << gram.nonterminals_ << "\n\n"
         << "Terminal Symbols:\n\t" << gram.terminals_ << "\n\n"
         << "Rules:\n" << gram.rules_ << "\n"
-        << "Productions:\n" << gram.prods_
+        << "Productions:\n" << gram.prods_ << "\n"
+        << "Firsts:\n" << gram.first_ << "\n"
+        << "Follows:\n" << gram.follow_
         << "-------------------------------------------------------\n";
         return os;
     }
+    friend std::istream& operator >>(std::istream& is, CFG& gram){
+        if(&is == &std::cin){
+            std::cout << "Enter epsilon value: ";
+            is >> gram.epsilon_;
+            std::cout << "Press CTRL + D (EOF) to end stream\n";
+        }
+        gram._set_grammar(is);
+        if(&is == &std::cin){
+            std::cout << "\n";
+        }
+        return is;
+    }
 };
+// declare helper functions
+void CFG::_set_grammar(std::istream& is) {
+    std::string line;
+    // get all rules
+    while (std::getline(is, line)) {
+        line.erase(line.find_last_not_of("\r\n") + 1);
+        if (!line.empty()) {
+            Rule *r = new Rule(line);
+            if (*r) {
+                empty_ = false;
+                rules_.emplace_back(r);
+            }
+        }
+    }
+    // get start symbol
+    start_symbol_ = rules_[0]->left();
+    // get all nonterminal symbols
+    for(Rule* r: rules_){
+        nonterminals_.insert(r->left());
+        for(const std::vector<std::string>& i:r->right()){
+            for(const std::string& j:i){
+                symbols_.insert(j);
+            }
+        }
+    }
+    // get all terminal symbols
+    for(const std::string& i:symbols_){
+        if(nonterminals_.find(i) == nonterminals_.end()){
+            terminals_.insert(i);
+        }
+    }
+    // remove epsilon from terminal symbol
+    if(terminals_.find(epsilon_) != terminals_.end()){
+        terminals_.erase(epsilon_);
+    }
+    // convert rule to productions
+    _convert_rule_to_prod();
+
+    // prepare first of all terminal
+    _prepare_first();
+
+    // prepare follow of all terminal
+    follow_[start_symbol_].insert("$");
+    _prepare_follow();
+}
+void CFG::_convert_rule_to_prod(){
+    for(Rule *r:rules_){
+        for(auto& right:r->right()){
+            prods_.emplace_back(new Prod(r->left(), right));
+        }
+    }
+}
+void CFG::_prepare_first() {
+    for(auto& i:nonterminals_){
+        get_first(i);
+    }
+}
+void CFG::_prepare_follow() {
+    for(auto&i:nonterminals_){
+        get_follow(i);
+    }
+}
+// declare public functions
+std::set<std::string> CFG::get_first(const std::vector<std::string>& prod){
+    if(prod.size() == 1 and prod[0] == epsilon_){
+        return std::set<std::string>{epsilon_};
+    }
+    if(is_terminal(prod[0])){
+        return std::set<std::string>{prod[0]};
+    }
+    std::set<std::string> ans, temp;
+    bool ep = true;
+    for(auto &i:prod){
+        temp = get_first(i);
+        if(temp.find(epsilon_) == temp.end()){
+            for(auto &j:temp){
+                ans.insert(j);
+            }
+            ep = false;
+            break;
+        }
+        temp.erase(epsilon_);
+        for(auto &j:temp){
+            ans.insert(j);
+        }
+    }
+    if(ep)ans.insert(epsilon_);
+    return ans;
+}
+std::set<std::string> CFG::get_first(const std::string& symbol){
+    // condition 1 if terminal
+    if(is_terminal(symbol)){
+        return std::set<std::string>{symbol};
+    }
+    // Recursion condition
+    if(first_done.find(symbol) != first_done.end()){
+        if(first_.find(symbol) != first_.end()){
+            return first_[symbol];
+        }
+        else{
+            return std::set<std::string>{};
+        }
+    }
+    first_done.insert(symbol);
+
+    // store ans
+    std::set<std::string> ans;
+
+    // condition 2
+    for(Prod* i:get_rules_for_left(symbol)){
+        if(i->right().size() == 1 && i->right()[0] == epsilon_){
+            ans.insert(epsilon_);
+        }
+    }
+    std::set<std::string> temp;
+    for(Prod* p:get_rules_for_left(symbol)){
+        temp = get_first(p->right());
+        for(auto &j:temp){
+            ans.insert(j);
+        }
+    }
+    // store in first for future purpose
+    first_[symbol] = ans;
+    return ans;
+}
+std::set<std::string> CFG::get_follow(const std::string& symbol){
+    // Recursion condition
+    if(follow_done.find(symbol) != follow_done.end()){
+        if(follow_.find(symbol) != follow_.end()){
+            return follow_[symbol];
+        }
+        else{
+            return std::set<std::string>{};
+        }
+    }
+    follow_done.insert(symbol);
+    // store ans
+    std::set<std::string> ans, temp;
+    bool add_follow;
+    for(auto *p:get_rules_for_right(symbol)){
+        std::vector<std::string> editable_p = p->right();
+        add_follow = false;
+        // remove all symbols which are left of current symbol
+        while(!editable_p.empty()){
+            if(editable_p[0] == symbol){
+                editable_p.erase(editable_p.begin());
+                break;
+            }
+            editable_p.erase(editable_p.begin());
+        }
+        // if empty then find follow of first left() of production or right part contains epsilon
+        if(!editable_p.empty()){
+            temp = get_first(editable_p);
+            if(temp.find(epsilon()) != temp.end()){
+                temp.erase(epsilon());
+                add_follow = true;
+            }
+        }
+        else{
+            add_follow = true;
+        }
+        for(auto &j:temp){
+            ans.insert(j);
+        }
+        if(add_follow){
+            temp = get_follow(p->left());
+            for(auto &j:temp){
+                ans.insert(j);
+            }
+        }
+    }
+    // store in first for future purpose
+    for(auto& i:ans){
+        follow_[symbol].insert(i);
+    }
+    return follow_[symbol];
+}
 
 #endif //COMPILER_ALGORITHMS_CFG_H

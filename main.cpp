@@ -1,5 +1,6 @@
 #include <iostream>
-#include "syntex_analysis/topdownparser/predictiveparsing.h"
+#include "syntex_analysis/cfg.h"
+#include "syntex_analysis/topdownparser/predictiveparser.h"
 #include <fstream>
 #include <string>
 using namespace std;
@@ -26,7 +27,8 @@ int main(int n, char** c) {
         cout<<"File can not be opened\n";
         exit(1);
     }
-    PredictiveParsing parser(inFile, "?");
-    parser.check_string(inFile1);
+    PredictiveParser parser("?");
+    inFile >> parser;
+    parser.check_file(inFile1);
     return 0;
 }

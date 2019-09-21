@@ -176,7 +176,7 @@ namespace cfg{
 }
 
 class CFG{
-private:
+protected:
     /* Grammar CFG(V, T, P, S) */
     std::set<std::string> terminals_;
     std::set<std::string> nonterminals_;
@@ -186,6 +186,7 @@ private:
     std::set<std::string> symbols_;
     std::vector<Prod*> prods_;
     std::string epsilon_;
+private:
     std::map<std::string, std::set<std::string>> first_;
     std::map<std::string, std::set<std::string>> follow_;
     /* helper data structures*/
@@ -220,6 +221,14 @@ public:
     }
     std::string epsilon() const{
         return epsilon_;
+    }
+    void first_follow(){
+        // prepare first of all terminal
+        _prepare_first();
+
+        // prepare follow of all terminal
+        follow_[start_symbol_].insert("$");
+        _prepare_follow();
     }
 
     /* define public functions */
@@ -315,13 +324,6 @@ void CFG::_set_grammar(std::istream& is) {
     }
     // convert rule to productions
     _convert_rule_to_prod();
-
-    // prepare first of all terminal
-    _prepare_first();
-
-    // prepare follow of all terminal
-    follow_[start_symbol_].insert("$");
-    _prepare_follow();
 }
 void CFG::_convert_rule_to_prod(){
     for(Rule *r:rules_){
@@ -368,6 +370,10 @@ std::set<std::string> CFG::get_first(const std::vector<std::string>& prod){
     return ans;
 }
 std::set<std::string> CFG::get_first(const std::string& symbol){
+    // string end symbol or epsilon symbol
+    if(symbol=="$" or symbol==epsilon_){
+        return std::set<std::string>{symbol};
+    }
     // condition 1 if terminal
     if(is_terminal(symbol)){
         return std::set<std::string>{symbol};
@@ -418,29 +424,28 @@ std::set<std::string> CFG::get_follow(const std::string& symbol){
     std::set<std::string> ans, temp;
     bool add_follow;
     for(auto *p:get_rules_for_right(symbol)){
-        std::vector<std::string> editable_p = p->right();
         add_follow = false;
         // remove all symbols which are left of current symbol
-        while(!editable_p.empty()){
+        for(std::vector<std::string> editable_p = p->right();!editable_p.empty();){
+            temp.clear();
             if(editable_p[0] == symbol){
                 editable_p.erase(editable_p.begin());
-                break;
+                // if empty then find follow of first left() of production or right part contains epsilon
+                if(!editable_p.empty()){
+                    temp = get_first(editable_p);
+                    if(temp.find(epsilon()) != temp.end()){
+                        temp.erase(epsilon());
+                        add_follow = true;
+                    }
+                }
+                else{add_follow=true;}
+                for(auto &j:temp){
+                    ans.insert(j);
+                }
             }
-            editable_p.erase(editable_p.begin());
-        }
-        // if empty then find follow of first left() of production or right part contains epsilon
-        if(!editable_p.empty()){
-            temp = get_first(editable_p);
-            if(temp.find(epsilon()) != temp.end()){
-                temp.erase(epsilon());
-                add_follow = true;
+            else{
+                editable_p.erase(editable_p.begin());
             }
-        }
-        else{
-            add_follow = true;
-        }
-        for(auto &j:temp){
-            ans.insert(j);
         }
         if(add_follow){
             temp = get_follow(p->left());

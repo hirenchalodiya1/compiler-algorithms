@@ -277,6 +277,14 @@ public:
     bool is_terminal(const std::string& str) const{
         return terminals_.find(str) != terminals_.end();
     }
+    bool have_epsilon_prod(const std::string& str){
+        for(Prod* p:get_rules_for_left(str)){
+            if(p->right().size() == 1 and p->right()[0] == epsilon_){
+                return true;
+            }
+        }
+        return false;
+    }
     friend std::ostream& operator <<(std::ostream& os, const CFG& gram){
         using namespace cfg;
         using namespace prettyprint;

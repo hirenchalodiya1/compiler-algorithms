@@ -15,19 +15,23 @@ class Prod{
 private:
     std::string left_;
     std::vector<std::string> right_;
-
 public:
-    explicit Prod(std::string  left, std::vector<std::string>  right):left_(std::move(left)), right_(std::move(right)){}
+    explicit Prod(std::string left, std::vector<std::string> right):left_(std::move(left)), right_(std::move(right)){}
     std::string& left(){return left_;}
     std::vector<std::string>& right(){return right_;}
     bool is_exist_on_right(const std::string& str){
         return std::find(right_.begin(), right_.end(), str) != right_.end();
+    }
+    void add_on_left(std::vector<std::string> st){
+        st.insert(st.end(), right_.begin(), right_.end());
+        right_ = st;
     }
     friend std::ostream& operator <<(std::ostream& os, const Prod& p){
         os << p.left_<< " --> ";
         for(const std::string &i:p.right_){
             os << i << " ";
         }
+        os << "\b";
         return os;
     }
 };
@@ -92,6 +96,17 @@ public:
             }
         }
     }
+    explicit Rule(const std::set<Prod*>& prods){
+        if(prods.empty()){
+            success_ = false;
+            return;
+        }
+        success_ = true;
+        left_ = (*prods.begin())->left();
+        for(Prod* p:prods){
+            right_.emplace_back(p->right());
+        }
+    }
     explicit operator bool(){
         return success_;
     }
@@ -112,6 +127,7 @@ public:
                 os << "| ";
             }
         }
+        os << "\b";
         return os;
     }
 };
@@ -155,7 +171,7 @@ namespace prettyprint{
 }
 
 namespace cfg{
-    inline std::ostream& operator <<(std::ostream& os, const std::vector<Prod*>& prods){
+    inline std::ostream& operator <<(std::ostream& os, const std::set<Prod*>& prods){
         for(Prod* p:prods){
             os << *p << '\n';
         }
@@ -184,7 +200,7 @@ protected:
     std::string start_symbol_;
     /* Additional Information */
     std::set<std::string> symbols_;
-    std::vector<Prod*> prods_;
+    std::set<Prod*> prods_;
     std::string epsilon_;
 private:
     std::map<std::string, std::set<std::string>> first_;
@@ -222,6 +238,7 @@ public:
     std::string epsilon() const{
         return epsilon_;
     }
+    virtual void object_creation(){first_follow();}
     void first_follow(){
         // prepare first of all terminal
         _prepare_first();
@@ -238,21 +255,21 @@ public:
 
     /* define and declare public functions */
     // get all of the rules staring with str symbol
-    std::vector<Prod*> get_rules_for_left(const std::string& str) const{
-        std::vector<Prod*> prod;
+    std::set<Prod*> get_rules_for_left(const std::string& str) const{
+        std::set<Prod*> prod;
         for(Prod* p:prods_){
             if(p->left() == str){
-                    prod.push_back(p);
+                    prod.insert(p);
             }
         }
         return prod;
     }
     // get all production which contains string at right side
-    std::vector<Prod*> get_rules_for_right(const std::string& str) const{
-        std::vector<Prod*> prod;
+    std::set<Prod*> get_rules_for_right(const std::string& str) const{
+        std::set<Prod*> prod;
         for(Prod* p:prods_){
             if(p->is_exist_on_right(str)){
-                prod.emplace_back(p);
+                prod.insert(p);
             }
         }
         return prod;
@@ -324,11 +341,13 @@ void CFG::_set_grammar(std::istream& is) {
     }
     // convert rule to productions
     _convert_rule_to_prod();
+    // create method for object creation
+    object_creation();
 }
 void CFG::_convert_rule_to_prod(){
     for(Rule *r:rules_){
         for(auto& right:r->right()){
-            prods_.emplace_back(new Prod(r->left(), right));
+            prods_.insert(new Prod(r->left(), right));
         }
     }
 }

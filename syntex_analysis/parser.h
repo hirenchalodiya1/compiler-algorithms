@@ -10,8 +10,8 @@
 
 class Parser{
 public:
-    virtual bool check_string(std::vector<std::string>& str)=0;
-    void check_file(std::istream& is){
+    virtual bool checkString(std::vector<std::string>& str)=0;
+    void checkFile(std::istream& is){
         std::string str, temp;
         std::vector<std::string> v;
         unsigned int i, n;
@@ -36,7 +36,7 @@ public:
                     ++i;
                 }
             }
-            if(check_string(v)){
+            if(checkString(v)){
                 std::cout << "Accepted\n";
             }
             else{

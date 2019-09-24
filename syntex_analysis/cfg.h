@@ -38,6 +38,26 @@ public:
         st.insert(st.end(), right_.begin(), right_.end());
         right_ = st;
     }
+    std::vector<std::string> getFromIthPosition(int i, const std::string& epsilon){
+        std::vector<std::string> str{};
+        for(unsigned long int j = i; j < right_.size(); j++){
+            str.push_back(right_[j]);
+        }
+        if(str.empty()){
+            str.push_back(epsilon);
+        }
+        return str;
+    }
+    std::vector<std::string> getTillIthPosition(int i, const std::string& epsilon){
+        std::vector<std::string> str{};
+        for(int j = 0; j < i; j++){
+            str.push_back(right_[j]);
+        }
+        if(str.empty()){
+            str.push_back(epsilon);
+        }
+        return str;
+    }
     /* operator functions */
     friend std::ostream& operator <<(std::ostream& os, const Prod& p);
 };
@@ -65,7 +85,7 @@ public:
         while (i < n && std::isspace(str[i])) {
             ++i;
         }
-        // getLeft side of production rule
+        // left side of production rule
         while (i < n && std::isalnum(str[i])) {
             left_.push_back(str[i]);
             ++i;
@@ -85,7 +105,7 @@ public:
         while (i < n && std::isspace(str[i])){
             ++i;
         }
-        // getRight side
+        // right side
         success_ = false;
         while(i < n){
             bool added = false;
@@ -378,9 +398,7 @@ std::set<std::string> CFG::getFirst(const std::string& symbol){
     first_done.insert(symbol);
 
     // store ans
-    std::set<std::string> ans;
-
-    std::set<std::string> temp;
+    std::set<std::string> ans, temp;
     for(Prod* p:getProdsForLeft(symbol)){
         temp = getFirst(p->getRight());
         for(auto &j:temp){
@@ -500,6 +518,7 @@ std::string CFG::generateNewSymbol(std::string str) {
     while(symbols_.find(new_string) != symbols_.end()){
         new_string = str + std::to_string(++digit);
     }
+    symbols_.insert(new_string);
     nonterminals_.insert(new_string);
     return new_string;
 }

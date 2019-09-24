@@ -172,9 +172,8 @@ std::ostream &operator<<(std::ostream &os, const Rule &r) {
 }
 
 namespace prettyprint{
-    // TODO: make_default function should call automatic each time we use namespace
-    std::string line_start="";
-    std::string line_end=" ";
+    std::string line_start;
+    std::string line_end;
     void make_default(){
         line_start = "";
         line_end = " ";
@@ -223,9 +222,12 @@ namespace cfg{
         return os;
     }
     inline std::ostream& operator <<(std::ostream& os, const std::map<std::string, std::set<std::string>>& m){
+        prettyprint::line_start="";
+        prettyprint::line_end = " ";
         for(const auto & i : m){
             os << i.first << " --> "; prettyprint::operator<<(os,  i.second) << "\n";
         }
+        prettyprint::make_default();
         return os;
     }
 }
@@ -526,6 +528,8 @@ std::string CFG::generateNewSymbol(std::string str) {
 std::ostream &operator<<(std::ostream &os, const CFG &gram) {
     using namespace cfg;
     using namespace prettyprint;
+    prettyprint::line_end = "";
+    prettyprint::line_end = " ";
     os << "----------------------- Grammar -----------------------\n"
        << "Start Symbol --> " << gram.start_symbol_ << "\n\n"
        << "Non-Terminal Symbols:\n\t" << gram.nonterminals_ << "\n\n"
@@ -535,6 +539,7 @@ std::ostream &operator<<(std::ostream &os, const CFG &gram) {
        << "Firsts:\n" << gram.first_ << "\n"
        << "Follows:\n" << gram.follow_
        << "-------------------------------------------------------\n";
+    prettyprint::make_default();
     return os;
 }
 std::istream &operator>>(std::istream &is, CFG &gram) {

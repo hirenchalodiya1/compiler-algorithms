@@ -121,7 +121,6 @@ std::string TopDownParsableGrammar::_removeDirectLeftRecursion(std::string& st){
 }
 /* remove left factoring */
 void TopDownParsableGrammar::_removeLeftFactoring(const std::string &str) {
-    std::cout << "called for symbol: " << str << "\n";
     auto temp = getProdsForLeft(str);
     // map all production to according to start symbol of each production
     std::map<std::string, std::set<Prod*>> mapping;

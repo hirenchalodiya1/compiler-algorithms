@@ -11,78 +11,54 @@
 
 class PredictiveParser: public Parser{
 private:
+    /* Predictive Parser P(G, T)*/
     TopDownParsableGrammar* gram_;
     std::map<std::string, std::map<std::string, std::set<Prod*>>> table_;
-    void _fill_table();
-    bool _check_string(std::vector<std::string> str, std::stack<std::string> st);
+    /* helper functions */
+    void _fillTable();
+    bool _checkString(std::vector<std::string> str, std::stack<std::string> st);
 public:
     explicit PredictiveParser(const std::string& e ="?"){
         gram_ = new TopDownParsableGrammar(e);
     }
     explicit PredictiveParser(std::istream& is,const std::string& e="?"){
         gram_ = new TopDownParsableGrammar(is, e);
-        _fill_table();
+        _fillTable();
     }
-    bool check_string(std::vector<std::string>& str) override{
-        str.emplace_back("$");
-        std::stack<std::string> st;
-        st.push("$");
-        st.push(gram_->start_symbol());
-        return _check_string(str, st);
-    }
-    friend std::ostream& operator <<(std::ostream& os, const PredictiveParser& parsingTable){
-        using namespace prettyprint;
-        prettyprint::line_start = "\t";
-        prettyprint::line_end = "\n";
-        for(auto& i:parsingTable.table_){
-            for(auto& j:i.second){
-                os << "Cell:[" << i.first << ", " << j.first << "]\n";
-                if(j.second.empty()){
-                    os << "\tNone\n";
-                }
-                else{
-                    os << j.second;
-                }
-            }
-        }
-        prettyprint::make_default();
-        return os;
-    }
-    friend std::istream& operator >>(std::istream& is, PredictiveParser& parser){
-        is >> *parser.gram_;
-        parser._fill_table();
-        return is;
-    }
-    std::map<std::string , std::set<Prod*>>& operator [](const std::string& str){
-        return table_[str];
-    }
+    /* override functions */
+    bool checkString(std::vector<std::string>& str) override;
+    /* operator functions */
+    friend std::ostream& operator <<(std::ostream& os, const PredictiveParser& parsingTable);
+    friend std::istream& operator >>(std::istream& is, PredictiveParser& parser);
+    std::map<std::string , std::set<Prod*>>& operator [](const std::string& str);
 };
-void PredictiveParser::_fill_table() {
+/* helper functions */
+void PredictiveParser::_fillTable() {
     // initialize all entry
-    for(const std::string& nt:gram_->nonterminals()){
-        for(const std::string& t:gram_->terminals()){
+    for(const std::string& nt:gram_->getNonterminals()){
+        for(const std::string& t:gram_->getTerminals()){
             table_[nt][t] = std::set<Prod*>{};
         }
         table_[nt]["$"] = std::set<Prod*>{};
     }
-    for(const std::string& nt:gram_->nonterminals()){
+    for(const std::string& nt:gram_->getNonterminals()){
         // temp variable
         std::set<std::string> temp;
         bool check_follow;
         // check for each production
-        for(Prod* p:gram_->get_rules_for_left(nt)){
+        for(Prod* p:gram_->getProdsForLeft(nt)){
             check_follow = false;
             temp.clear();
-            temp = gram_->get_first(p->right());
-            if(temp.find(gram_->epsilon()) != temp.end()) {
-                temp.erase(gram_->epsilon());
+            temp = gram_->getFirst(p->getRight());
+            if(temp.find(gram_->getEpsilon()) != temp.end()) {
+                temp.erase(gram_->getEpsilon());
                 check_follow = true;
             }
             for(auto &j:temp){
                 table_[nt][j].insert(p);
             }
             if(check_follow){
-                temp = gram_->get_follow(nt);
+                temp = gram_->getFollow(nt);
                 for(auto &j:temp){
                     table_[nt][j].insert(p);
                 }
@@ -90,13 +66,13 @@ void PredictiveParser::_fill_table() {
         }
     }
 }
-bool PredictiveParser::_check_string(std::vector<std::string> str, std::stack<std::string> st){
+bool PredictiveParser::_checkString(std::vector<std::string> str, std::stack<std::string> st){
     while(!st.empty()){
         if(st.top() == str[0]){
             st.pop();
             str.erase(str.begin());
         }
-        else if(gram_->is_terminal(st.top())){
+        else if(gram_->isTerminal(st.top())){
             return false;
         }
         else if(table_[st.top()][str[0]].empty()){
@@ -107,13 +83,13 @@ bool PredictiveParser::_check_string(std::vector<std::string> str, std::stack<st
             st.pop();
             for(auto i:table_[top][str[0]]){
                 std::stack<std::string> temp = st;
-                for(auto j = i->right().rbegin(); j != i->right().rend(); ++j){
+                for(auto j = i->getRight().rbegin(); j != i->getRight().rend(); ++j){
                     temp.push(*j);
                 }
-                while(temp.top() == gram_->epsilon()){
+                while(temp.top() == gram_->getEpsilon()){
                     temp.pop();
                 }
-                if(_check_string(str, temp)){
+                if(_checkString(str, temp)){
                     return true;
                 }
             }
@@ -121,6 +97,41 @@ bool PredictiveParser::_check_string(std::vector<std::string> str, std::stack<st
         }
     }
     return true;
+}
+/* override functions */
+bool PredictiveParser::checkString(std::vector<std::string> &str) {
+    str.emplace_back("$");
+    std::stack<std::string> st;
+    st.push("$");
+    st.push(gram_->getStartSymbol());
+    return _checkString(str, st);
+}
+/* operator functions */
+std::ostream &operator<<(std::ostream &os, const PredictiveParser &parsingTable) {
+    using namespace prettyprint;
+    prettyprint::line_start = "\t";
+    prettyprint::line_end = "\n";
+    for(auto& i:parsingTable.table_){
+        for(auto& j:i.second){
+            os << "Cell:[" << i.first << ", " << j.first << "]\n";
+            if(j.second.empty()){
+                os << "\tNone\n";
+            }
+            else{
+                os << j.second;
+            }
+        }
+    }
+    prettyprint::make_default();
+    return os;
+}
+std::istream &operator>>(std::istream &is, PredictiveParser &parser) {
+    is >> *parser.gram_;
+    parser._fillTable();
+    return is;
+}
+std::map<std::string, std::set<Prod *>> &PredictiveParser::operator[](const std::string &str) {
+    return table_[str];
 }
 
 #endif //COMPILER_ALGORITHMS_PREDICTIVEPARSER_H

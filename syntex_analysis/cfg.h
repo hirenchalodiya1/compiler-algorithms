@@ -238,6 +238,24 @@ public:
     std::string epsilon() const{
         return epsilon_;
     }
+    std::string get_new_symbol(std::string str){
+        int digit=0;
+        while (!str.empty()){
+            if(std::isdigit(*str.rbegin())){
+                digit = digit*10 + (*str.rbegin() - '0');
+                str.pop_back();
+            }
+            else{
+                break;
+            }
+        }
+        std::string new_string = str + std::to_string(++digit);
+        while(symbols_.find(new_string) != symbols_.end()){
+            new_string = str + std::to_string(++digit);
+        }
+        nonterminals_.insert(new_string);
+        return new_string;
+    }
     virtual void object_creation(){first_follow();}
     void first_follow(){
         // prepare first of all terminal

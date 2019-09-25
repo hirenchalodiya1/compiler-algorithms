@@ -21,8 +21,8 @@ private:
     /* update rule according to production */
     void _convertProdToRule();
 public:
-    explicit TopDownParsableGrammar(const std::string& e="ep"):CFG(e){}
-    explicit TopDownParsableGrammar(std::istream& is,const std::string& e="ep"):CFG(is, e){}
+    using  CFG::CFG;
+    /* override function */
     void objectCreation() override {
         _removeLeftRecursion();
         _removeLeftFactoring();

@@ -9,27 +9,20 @@
 #include "topdowngrammer.h"
 #include "../parser.h"
 
-class PredictiveParser: public Parser{
+class PredictiveParser: public Parser<TopDownParsableGrammar>{
 private:
-    /* Predictive Parser P(G, T)*/
-    TopDownParsableGrammar* gram_;
+    /* Predictive Parser P(G<Protected Member>, T)*/
     std::map<std::string, std::map<std::string, std::set<Prod*>>> table_;
     /* helper functions */
     void _fillTable();
     bool _checkString(std::vector<std::string> str, std::stack<std::string> st);
 public:
-    explicit PredictiveParser(const std::string& e ="?"){
-        gram_ = new TopDownParsableGrammar(e);
-    }
-    explicit PredictiveParser(std::istream& is,const std::string& e="?"){
-        gram_ = new TopDownParsableGrammar(is, e);
-        _fillTable();
-    }
+    using Parser::Parser;
     /* override functions */
     bool checkString(std::vector<std::string>& str) override;
+    void objectCreation() override;
     /* operator functions */
     friend std::ostream& operator <<(std::ostream& os, const PredictiveParser& parsingTable);
-    friend std::istream& operator >>(std::istream& is, PredictiveParser& parser);
     std::map<std::string , std::set<Prod*>>& operator [](const std::string& str);
 };
 /* helper functions */
@@ -106,6 +99,9 @@ bool PredictiveParser::checkString(std::vector<std::string> &str) {
     st.push(gram_->getStartSymbol());
     return _checkString(str, st);
 }
+void PredictiveParser::objectCreation() {
+    _fillTable();
+}
 /* operator functions */
 std::ostream &operator<<(std::ostream &os, const PredictiveParser &parsingTable) {
     using namespace prettyprint;
@@ -124,11 +120,6 @@ std::ostream &operator<<(std::ostream &os, const PredictiveParser &parsingTable)
     }
     prettyprint::make_default();
     return os;
-}
-std::istream &operator>>(std::istream &is, PredictiveParser &parser) {
-    is >> *parser.gram_;
-    parser._fillTable();
-    return is;
 }
 std::map<std::string, std::set<Prod *>> &PredictiveParser::operator[](const std::string &str) {
     return table_[str];

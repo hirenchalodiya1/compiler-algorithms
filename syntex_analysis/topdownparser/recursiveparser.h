@@ -8,28 +8,15 @@
 #include "topdowngrammer.h"
 #include "../parser.h"
 
-class RecursiveParser:public Parser{
+class RecursiveParser:public Parser<TopDownParsableGrammar>{
 private:
-    TopDownParsableGrammar* gram_;
     /* helper functions */
     bool _checkString(std::vector<std::string>& str, const std::string& symbol);
 public:
-    explicit RecursiveParser(const std::string& e ="?"){
-        gram_ = new TopDownParsableGrammar(e);
-    }
-    explicit RecursiveParser(std::istream& is,const std::string& e="?"){
-        gram_ = new TopDownParsableGrammar(is, e);
-    }
+    using Parser::Parser;
     /* override functions */
     bool checkString(std::vector<std::string>& str) override;
-    /* operator functions */
-    friend std::istream& operator >>(std::istream& is, RecursiveParser& parser);
 };
-/* operator functions */
-std::istream &operator>>(std::istream &is, RecursiveParser &parser) {
-    is >> *parser.gram_;
-    return is;
-}
 /* override functions */
 bool RecursiveParser::checkString(std::vector<std::string> &str) {
     auto t = _checkString(str, gram_->getStartSymbol());

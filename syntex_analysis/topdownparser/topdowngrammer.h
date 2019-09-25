@@ -29,6 +29,8 @@ public:
         _convertProdToRule();
         FirstFollow();
     }
+    /* public functions */
+    bool canGenerateEpsilonProduction(const std::string& str);
 };
 /* update rule to production*/
 void TopDownParsableGrammar::_convertProdToRule() {
@@ -197,5 +199,26 @@ void TopDownParsableGrammar::_removeLeftFactoring() {
     for(const std::string& i:nt){
         _removeLeftFactoring(i);
     }
+}
+/* public functions */
+bool TopDownParsableGrammar::canGenerateEpsilonProduction(const std::string &str) {
+    if(str == epsilon_){
+        return true;
+    }
+    if(terminals_.find(str) != terminals_.end()){
+        return false;
+    }
+    if(haveEpsilonProduction(str)){
+        return true;
+    }
+    bool temp;
+    for(Prod* p:getProdsForLeft(str)){
+        temp = true;
+        for(const std::string& j:p->getRight()){
+            temp &= canGenerateEpsilonProduction(j);
+        }
+        if(temp)return true;
+    }
+    return false;
 }
 #endif //COMPILER_ALGORITHMS_TOPDOWNGRAMMAR_H

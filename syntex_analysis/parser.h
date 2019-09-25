@@ -8,9 +8,29 @@
 #include <iostream>
 #include <vector>
 
+template <class T>
 class Parser{
+protected:
+    T* gram_;
+private:
+    bool success_;
 public:
+    explicit Parser(const std::string& e ="?"){
+        gram_ = new T(e);
+        success_ = false;
+    }
+    explicit Parser(std::istream& is,const std::string& e="?"){
+        gram_ = new T(is, e);
+        success_ = (bool)*gram_;
+        objectCreation();
+    }
+    explicit operator bool(){
+        return success_;
+    }
+    /* virtual functions */
     virtual bool checkString(std::vector<std::string>& str)=0;
+    virtual void objectCreation(){};
+    /* public functions */
     void checkFile(std::istream& is){
         std::string str, temp;
         std::vector<std::string> v;
@@ -43,6 +63,13 @@ public:
                 std::cout << "Not Accepted\n";
             }
         }
+    }
+    /* operator functions */
+    friend std::istream& operator >>(std::istream& is, Parser<T>& parser){
+        is >> *parser.gram_;
+        parser.objectCreation();
+        parser.success_ = (bool)*parser.gram_;
+        return is;
     }
 };
 

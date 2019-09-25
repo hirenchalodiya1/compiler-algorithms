@@ -5,7 +5,7 @@
 #ifndef COMPILER_ALGORITHMS_RECURSIVEPARSER_H
 #define COMPILER_ALGORITHMS_RECURSIVEPARSER_H
 
-#include "topdowngrammer.h"
+#include "topdowngrammar.h"
 #include "../parser.h"
 
 class RecursiveParser:public Parser<TopDownParsableGrammar>{

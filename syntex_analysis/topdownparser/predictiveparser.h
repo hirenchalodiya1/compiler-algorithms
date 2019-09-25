@@ -6,7 +6,7 @@
 
 #include <stack>
 #include <vector>
-#include "topdowngrammer.h"
+#include "topdowngrammar.h"
 #include "../parser.h"
 
 class PredictiveParser: public Parser<TopDownParsableGrammar>{

@@ -10,7 +10,6 @@
 
 class TopDownParsableGrammar : public CFG{
 private:
-    /* helper function definition */
     /* remove left recursion */
     std::string _removeDirectLeftRecursion(std::string& st);
     void _replaceJInI(std::string &st1, std::string& st2);
@@ -18,8 +17,6 @@ private:
     /* remove left factoring */
     void _removeLeftFactoring(const std::string& str);
     void _removeLeftFactoring();
-    /* update rule according to production */
-    void _convertProdToRule();
 public:
     using  CFG::CFG;
     /* override function */
@@ -32,14 +29,6 @@ public:
     /* public functions */
     bool canGenerateEpsilonProduction(const std::string& str);
 };
-/* update rule to production*/
-void TopDownParsableGrammar::_convertProdToRule() {
-    rules_.clear();
-    for(auto& nt:nonterminals_){
-        Rule* temp = new Rule(getProdsForLeft(nt));
-        if(*temp)rules_.emplace_back(temp);
-    }
-}
 /* remove left recursion */
 void TopDownParsableGrammar::_removeLeftRecursion() {
     // arrange non terminal in some order not necessary started with start symbol

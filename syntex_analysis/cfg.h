@@ -243,6 +243,10 @@ protected:
     std::set<std::string> symbols_;
     std::set<Prod*> prods_;
     std::string epsilon_;
+    /* helper function */
+    void _convertRuleToProd();
+    void _convertProdToRule();
+    void FirstFollow();
 private:
     std::map<std::string, std::set<std::string>> first_;
     std::map<std::string, std::set<std::string>> follow_;
@@ -252,7 +256,6 @@ private:
 
     /* define helper functions*/
     void _setGrammar(std::istream& is);
-    void _convertRuleToProd();
     void _prepareFirst();
     void _prepareFollow();
 public:
@@ -273,7 +276,6 @@ public:
     const std::string &getStartSymbol() const;
     const std::string &getEpsilon() const;
      /* first follow function */
-    void FirstFollow();
     std::set<std::string> getFirst(const std::vector<std::string>& prod);
     std::set<std::string> getFirst(const std::string& symbol);
     std::set<std::string> getFollow(const std::string& symbol);
@@ -332,6 +334,13 @@ void CFG::_convertRuleToProd(){
         for(auto& right:r->getRight()){
             prods_.insert(new Prod(r->getLeft(), right));
         }
+    }
+}
+void CFG::_convertProdToRule() {
+    rules_.clear();
+    for(auto& nt:nonterminals_){
+        Rule* temp = new Rule(getProdsForLeft(nt));
+        if(*temp)rules_.emplace_back(temp);
     }
 }
 void CFG::_prepareFirst() {

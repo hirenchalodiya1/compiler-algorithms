@@ -207,12 +207,10 @@ T* DFA<T>::transition(T *state, const std::string &symbol) {
 /* operator functions */
 template<class T>
 std::istream &operator>>(std::istream &is, DFA<T> &dfa) {
-    if(&is == &std::cin){
-        std::cout << "Enter epsilon value: ";
-        is >> dfa.epsilon_;
-        is.ignore(reinterpret_cast<std::streamsize>(std::numeric_limits<std::streamsize>::max), '\n');
-    }
     dfa._setDFA(is);
+    if(&is == &std::cin){
+        std::cout << "\n";
+    }
     return is;
 }
 template<class T>

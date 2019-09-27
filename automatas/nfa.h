@@ -261,6 +261,9 @@ std::istream &operator>>(std::istream &is, NFA<T> &nfa) {
         is.ignore(reinterpret_cast<std::streamsize>(std::numeric_limits<std::streamsize>::max), '\n');
     }
     nfa._setNFA(is);
+    if(&is == &std::cin){
+        std::cout << "\n";
+    }
     return is;
 }
 template<class T>

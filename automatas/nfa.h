@@ -9,6 +9,11 @@
 #include <set>
 #include <map>
 #include <iostream>
+#include <sstream>
+#include <limits>
+#include <stack>
+#include <utility>
+#include "../print.h"
 
 template <class STATE>
 class NFA{
@@ -18,40 +23,41 @@ private:
     std::set<STATE*> states_;
     STATE* starting_state_;
     std::set<STATE*> final_states_;
-    std::map<STATE*, std::map<std::string, std::set<STATE>>> delta_;
-
+    std::map<STATE*, std::map<std::string, std::set<STATE*>>> delta_;
+    /* helper data structure */
     std::string epsilon_;
     bool success_;
-
+    /* helper functions */
     void _setNFA(std::istream& is);
+    void _makeTransitionTable(std::istream& is);
+    STATE* _getPointer(STATE* t) const;
+    bool _isValidSymbol(const std::string &str) const;
 public:
     explicit NFA(std::string e="ep"):epsilon_(std::move(e)){
         success_ = false;
     };
     explicit NFA(std::istream&is, std::string e="ep"):epsilon_(std::move(e)){
+        success_ = false;
         _setNFA(is);
     }
+    explicit NFA(std::set<std::string> sigma, const std::set<STATE *> &states, STATE *startingState,
+                 const std::set<STATE *> &finalStates, std::string epsilon="ep"):sigma_(std::move(sigma)),
+                 states_(states), starting_state_(std::move(startingState)), final_states_(finalStates), epsilon_(std::move(epsilon)), success_(true) {};
     explicit operator bool(){
         return success_;
     }
+    /* public functions */
+    bool addTransition(STATE* state1, std::string& str, STATE* state2);
+    std::set<STATE *> getEpsilonClosure(std::set<STATE *> states);
+    std::set<STATE *> transition(std::set<STATE *> states, const std::string& symbol);
+    std::set<STATE *> transition(STATE * state, const std::string& symbol);
     /* operator function */
-    friend std::istream&operator>>(std::istream& is, NFA<STATE>& nfa){
-        if(&is == &std::cin){
-            std::cout << "Enter epsilon value: ";
-            is >> nfa.epsilon_;
-            std::cout << "Press CTRL + D (EOF) to end stream\n";
-        }
-        nfa._setNFA(is);
-        if(&is == &std::cin){
-            std::cout << "\n";
-        }
-        return is;
-    }
-    friend std::ostream&operator<<(std::ostream& os, NFA<STATE>& nfa){
-        os << *nfa.starting_state_ << "\n";
-        return os;
-    }
+    template <class T>
+    friend std::istream&operator>>(std::istream& is, NFA<T>& nfa);
+    template <class T>
+    friend std::ostream&operator<<(std::ostream& os, NFA<T>& nfa);
 };
+/* helper functions */
 template <class T>
 void NFA<T>::_setNFA(std::istream& is) {
     std::string line, temp;
@@ -59,7 +65,8 @@ void NFA<T>::_setNFA(std::istream& is) {
     unsigned int i, n;
     // get all symbols
     if(&is == &std::cin){
-        std::cout << "Enter all symbols separated by space and then hit enter: ";
+        is.clear();
+        std::cout << "Enter all symbols separated by space and then hit enter:\n";
     }
     std::getline(is, line);
     line.erase(line.find_last_not_of("\r\n") + 1);
@@ -81,21 +88,23 @@ void NFA<T>::_setNFA(std::istream& is) {
     if(!(success_ = !sigma_.empty())){
         return;
     }
-    T t;
+    T *t;
     // get all states
     if(&is == &std::cin){
-        std::cout << "Enter all states separated by space and then hit enter: ";
+        std::cout << "Enter all states separated by space and then hit enter:\n";
     }
     temp_char = is.get();
     if(!(success_ = (temp_char != EOF))){
-        return;;
+        return;
     }
+    is.putback(temp_char);
     while (temp_char != '\n'){
-        is >> t;
-        states_.emplace(&t);
+        t = new T();
+        is >> *t;
+        states_.emplace(t);
         temp_char = is.get();
         if(!(success_ = (temp_char != EOF))){
-            return;;
+            return;
         }
     }
     if(!(success_ = !states_.empty())){
@@ -105,30 +114,167 @@ void NFA<T>::_setNFA(std::istream& is) {
     if(&is == &std::cin){
         std::cout << "Enter starting state and then hit enter: ";
     }
-    is >> t;
-    starting_state_  = &t;
+    t = new T();
+    is >> *t;
+    starting_state_  = _getPointer(t);
+    if(!starting_state_){
+        success_ = false;
+        return;
+    }
     if(!(success_ = (is.get() == '\n'))){
         return;
     }
     // final states
     if(&is == &std::cin){
-        std::cout << "Enter all states separated by space and then hit enter: ";
+        std::cout << "Enter all final states separated by space and then hit enter:\n";
     }
     temp_char = is.get();
-    if(&is == &std::cin){
-        std::cout << "Enter all final states separated by space and then hit enter: ";
+    if(!(success_ = (temp_char != EOF))){
+        return;
     }
-    while (is.get() != '\n'){
-        is >> t;
-        final_states_.emplace(&t);
+    is.putback(temp_char);
+    while (temp_char != '\n'){
+        t = new T();
+        is >> *t;
+        final_states_.emplace(_getPointer(t));
         temp_char = is.get();
         if(!(success_ = (temp_char != EOF))){
-            return;;
+            return;
         }
     }
     if(!(success_ = !final_states_.empty())){
         return;
     }
+    _makeTransitionTable(is);
+}
+template <class T>
+void NFA<T>::_makeTransitionTable(std::istream &is) {
+    // transition table
+    if(&is == &std::cin){
+        std::cout << "Enter all transitions in this format <STATE><SPACE>, <SYMBOL><SPACE> - <STATES SEPARATED BY SPACE AND HIT ENTER>:\n";
+        std::cout << "Press CTRL + D (EOF) to end stream\n";
+    }
+
+    const char arrow = '-';
+    const char delimiter= ',';
+
+    std::string line, temp, symbol;
+    T* t = new T();
+    char temp_char;
+    while (std::getline(is, line)) {
+        line.erase(line.find_last_not_of("\r\n") + 1);
+        std::stringstream s(line);
+        s >> *t;
+        T* leftPoint = _getPointer(t);
+        if(!leftPoint){continue;}
+        s >> temp_char;
+        if(std::isspace(temp_char)){s >> temp_char;}
+        if(temp_char == EOF){continue;}
+        if(temp_char != delimiter){continue;}
+        s >> symbol;
+        s >> temp_char;
+        if(!_isValidSymbol(symbol)){continue;}
+        if(std::isspace(temp_char)){s >> temp_char;}
+        if(temp_char == EOF){continue;}
+        if(temp_char != arrow){continue;}
+        while(s >> *t){
+            auto zzz = _getPointer(t);
+            if(zzz)addTransition(leftPoint, symbol, _getPointer(t));
+        }
+    }
+}
+template<class T>
+T *NFA<T>::_getPointer(T *t) const {
+    for(const auto i:states_){
+        if((*i)==(*t)){
+            return i;
+        }
+    }
+    return nullptr;
+}
+template<class T>
+bool NFA<T>::_isValidSymbol(const std::string &str) const {
+    if(str==epsilon_){
+        return true;
+    }
+    return sigma_.find(str) != sigma_.end();
+}
+/* public functions */
+template<class T>
+bool NFA<T>::addTransition(T *state1, std::string& str, T *state2) {
+    if(sigma_.find(str) == sigma_.end() and str != epsilon_){
+        return false;
+    }
+    if(states_.find(state1) == states_.end() or states_.find(state2) == states_.end()){
+        return false;
+    }
+    delta_[state1][str].insert(state2);
+    return true;
+}
+template<class T>
+std::set<T *> NFA<T>::getEpsilonClosure(std::set<T *> states){
+    std::set<T*> ans;
+    ans.clear();
+    std::stack<T*> st;
+    T* temp;
+    for(auto i:states){
+        ans.insert(i);
+        st.push(i);
+    }
+    while(!st.empty()){
+        temp = st.top();
+        st.pop();
+        for(T* i:delta_[temp][epsilon_]){
+            if(ans.find(i) == ans.end()){
+                ans.insert(i);
+                st.push(i);
+            }
+        }
+    }
+    return ans;
+}
+template<class T>
+std::set<T *> NFA<T>::transition(std::set<T *> states, const std::string& symbol) {
+    std::set<T *> ans, temp;
+    ans.clear();
+    temp.clear();
+    for(T* i: getEpsilonClosure(states)){
+        temp = delta_[i][symbol];
+        for(T* j: getEpsilonClosure(temp)){
+            if(ans.find(j) == ans.end()){
+                ans.insert(j);
+            }
+        }
+    }
+    return ans;
+}
+template<class T>
+std::set<T *> NFA<T>::transition(T *state, const std::string &symbol) {
+    return transition(std::set<T *>{state}, symbol);
+}
+/* operator functions */
+template<class T>
+std::istream &operator>>(std::istream &is, NFA<T> &nfa) {
+    if(&is == &std::cin){
+        std::cout << "Enter epsilon value: ";
+        is >> nfa.epsilon_;
+        is.ignore(reinterpret_cast<std::streamsize>(std::numeric_limits<std::streamsize>::max), '\n');
+    }
+    nfa._setNFA(is);
+    return is;
+}
+template<class T>
+std::ostream &operator<<(std::ostream &os, NFA<T> &nfa) {
+    using namespace prettyprint;
+    prettyprint::make_default();
+    os << "------------------- NFA -------------------------\n"
+       << "Symbols:\n\t" << nfa.sigma_ << "\b\n"
+       << "Starting State: " << *nfa.starting_state_ << "\n"
+       << "States:\n\t" << nfa.states_ << "\b\n"
+       << "Final states:\n\t" << nfa.final_states_ << "\b\n"
+       << "Delta Transitions:\n" << nfa.delta_
+       << "-------------------------------------------------\n";
+    return os;
 }
 
 #endif //COMPILER_ALGORITHMS_NFA_H

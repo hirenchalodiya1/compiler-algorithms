@@ -48,7 +48,7 @@ public:
     }
     /* public functions */
     bool addTransition(STATE* state1, std::string& str, STATE* state2);
-    std::set<STATE *> getEpsilonClosure(std::set<STATE *> states);
+    std::set<STATE *> getEpsilonClosure(std::set<STATE *>& states);
     std::set<STATE *> transition(std::set<STATE *> states, const std::string& symbol);
     std::set<STATE *> transition(STATE * state, const std::string& symbol);
     /* operator function */
@@ -212,7 +212,7 @@ bool NFA<T>::addTransition(T *state1, std::string& str, T *state2) {
     return true;
 }
 template<class T>
-std::set<T *> NFA<T>::getEpsilonClosure(std::set<T *> states){
+std::set<T *> NFA<T>::getEpsilonClosure(std::set<T *>& states){
     std::set<T*> ans;
     ans.clear();
     std::stack<T*> st;

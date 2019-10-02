@@ -55,7 +55,7 @@ namespace prettyprint{
         make_default();
         for(auto i:delta){
             for(auto j:i.second){
-                os << "(" << *i.first << ", " << j.first << ") --> " << *j.second << "\b\n";
+                os << "(" << *i.first << ", " << j.first << ") --> " << *j.second << "\n";
             }
         }
         return os;

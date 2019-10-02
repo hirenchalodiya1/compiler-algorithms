@@ -38,13 +38,21 @@ public:
         success_ = false;
         _setDFA(is);
     }
-    explicit DFA(std::set<std::string> sigma, const std::set<STATE *> &states, STATE *startingState,
-                 const std::set<STATE *> &finalStates):sigma_(std::move(sigma)),states_(states), starting_state_(std::move(startingState)), final_states_(finalStates), success_(true) {};
+    explicit DFA(std::set<std::string> sigma, STATE *startingState):sigma_(std::move(sigma)),starting_state_(startingState), success_(true) {
+        states_.insert(startingState);
+    };
     explicit operator bool(){
         return success_;
     }
-    /* public functions */
+    /* setter functions */
     bool addTransition(STATE* state1, std::string& str, STATE* state2);
+    void addState(STATE* state);
+    void addFinalState(STATE* state);
+    /* getter functions */
+    const std::set<std::string> &getSigma() const;
+    const std::set<STATE *> &getStates() const;
+    STATE *getStartingState() const;
+    const std::set<STATE *> &getFinalStates() const;
     STATE* transition(STATE * state, const std::string& symbol);
     /* operator function */
     template <class T>
@@ -53,6 +61,7 @@ public:
     friend std::ostream&operator<<(std::ostream& os, DFA<T>& dfa);
 };
 /* helper functions */
+
 template <class T>
 void DFA<T>::_setDFA(std::istream &is){
     std::string line, temp;
@@ -142,6 +151,7 @@ void DFA<T>::_setDFA(std::istream &is){
     }
     _makeTransitionTable(is);
 }
+
 template <class T>
 void DFA<T>::_makeTransitionTable(std::istream &is) {
     // transition table
@@ -178,6 +188,7 @@ void DFA<T>::_makeTransitionTable(std::istream &is) {
         addTransition(leftPoint, symbol, rightPoint);
     }
 }
+
 template<class T>
 T *DFA<T>::_getPointer(T *t) const {
     for(const auto i:states_){
@@ -187,11 +198,13 @@ T *DFA<T>::_getPointer(T *t) const {
     }
     return nullptr;
 }
+
 template<class T>
 bool DFA<T>::_isValidSymbol(const std::string &str) const {
     return sigma_.find(str) != sigma_.end();
 }
-/* public functions */
+/* setter functions */
+
 template<class T>
 bool DFA<T>::addTransition(T *state1, std::string& str, T *state2) {
     if(states_.find(state1) == states_.end() or states_.find(state2) == states_.end()){
@@ -200,10 +213,18 @@ bool DFA<T>::addTransition(T *state1, std::string& str, T *state2) {
     delta_[state1][str] = state2;
     return true;
 }
-template<class T>
-T* DFA<T>::transition(T *state, const std::string &symbol) {
-    return delta_[state][symbol];
+
+template<class STATE>
+void DFA<STATE>::addState(STATE *state) {
+    states_.insert(state);
 }
+
+template<class STATE>
+void DFA<STATE>::addFinalState(STATE *state) {
+    states_.insert(state);
+    final_states_.insert(state);
+}
+
 /* operator functions */
 template<class T>
 std::istream &operator>>(std::istream &is, DFA<T> &dfa) {
@@ -213,17 +234,46 @@ std::istream &operator>>(std::istream &is, DFA<T> &dfa) {
     }
     return is;
 }
+
 template<class T>
 std::ostream &operator<<(std::ostream &os, DFA<T> &dfa) {
     using namespace prettyprint;
     prettyprint::make_default();
+    auto start = *dfa.getStartingState();
     os << "------------------- DFA -------------------------\n"
        << "Symbols:\n\t" << dfa.sigma_ << "\b\n"
-       << "Starting State: " << *dfa.starting_state_ << "\n"
+       << "Starting State: " << start << "\n"
        << "States:\n\t" << dfa.states_ << "\b\n"
        << "Final states:\n\t" << dfa.final_states_ << "\b\n"
        << "Delta Transitions:\n" << dfa.delta_
        << "-------------------------------------------------\n";
     return os;
 }
+
+/* getter functions */
+template<class STATE>
+const std::set<std::string> &DFA<STATE>::getSigma() const {
+    return sigma_;
+}
+
+template<class STATE>
+const std::set<STATE *> &DFA<STATE>::getStates() const {
+    return states_;
+}
+
+template<class STATE>
+STATE *DFA<STATE>::getStartingState() const {
+    return starting_state_;
+}
+
+template<class STATE>
+const std::set<STATE *> &DFA<STATE>::getFinalStates() const {
+    return final_states_;
+}
+
+template<class T>
+T* DFA<T>::transition(T *state, const std::string &symbol) {
+    return delta_[state][symbol];
+}
+
 #endif //COMPILER_ALGORITHMS_DFA_H

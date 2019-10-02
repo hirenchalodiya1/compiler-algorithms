@@ -40,24 +40,34 @@ public:
         success_ = false;
         _setNFA(is);
     }
-    explicit NFA(std::set<std::string> sigma, const std::set<STATE *> &states, STATE *startingState,
-                 const std::set<STATE *> &finalStates, std::string epsilon="ep"):sigma_(std::move(sigma)),
-                 states_(states), starting_state_(std::move(startingState)), final_states_(finalStates), epsilon_(std::move(epsilon)), success_(true) {};
+    explicit NFA(std::set<std::string> sigma, STATE *startingState, std::string epsilon="ep"):sigma_(std::move(sigma)), starting_state_(std::move(startingState)), epsilon_(std::move(epsilon)), success_(true) {
+        states_.insert(startingState);
+    };
     explicit operator bool(){
         return success_;
     }
     /* public functions */
     bool addTransition(STATE* state1, std::string& str, STATE* state2);
+    void addState(STATE* state);
+    void addFinalState(STATE* state);
+    /* getter functions */
     std::set<STATE *> getEpsilonClosure(std::set<STATE *>& states);
     std::set<STATE *> transition(std::set<STATE *> states, const std::string& symbol);
     std::set<STATE *> transition(STATE * state, const std::string& symbol);
+    const std::set<std::string> &getSigma() const;
+    const std::set<STATE *> &getStates() const;
+    STATE *getStartingState() const;
+    const std::set<STATE *> &getFinalStates() const;
+    const std::string &getEpsilon() const;
     /* operator function */
     template <class T>
     friend std::istream&operator>>(std::istream& is, NFA<T>& nfa);
     template <class T>
     friend std::ostream&operator<<(std::ostream& os, NFA<T>& nfa);
 };
+
 /* helper functions */
+
 template <class T>
 void NFA<T>::_setNFA(std::istream& is) {
     std::string line, temp;
@@ -147,6 +157,7 @@ void NFA<T>::_setNFA(std::istream& is) {
     }
     _makeTransitionTable(is);
 }
+
 template <class T>
 void NFA<T>::_makeTransitionTable(std::istream &is) {
     // transition table
@@ -183,6 +194,7 @@ void NFA<T>::_makeTransitionTable(std::istream &is) {
         }
     }
 }
+
 template<class T>
 T *NFA<T>::_getPointer(T *t) const {
     for(const auto i:states_){
@@ -192,6 +204,7 @@ T *NFA<T>::_getPointer(T *t) const {
     }
     return nullptr;
 }
+
 template<class T>
 bool NFA<T>::_isValidSymbol(const std::string &str) const {
     if(str==epsilon_){
@@ -199,7 +212,9 @@ bool NFA<T>::_isValidSymbol(const std::string &str) const {
     }
     return sigma_.find(str) != sigma_.end();
 }
+
 /* public functions */
+
 template<class T>
 bool NFA<T>::addTransition(T *state1, std::string& str, T *state2) {
     if(sigma_.find(str) == sigma_.end() and str != epsilon_){
@@ -211,6 +226,50 @@ bool NFA<T>::addTransition(T *state1, std::string& str, T *state2) {
     delta_[state1][str].insert(state2);
     return true;
 }
+
+template<class STATE>
+void NFA<STATE>::addState(STATE *state) {
+    states_.insert(state);
+}
+
+template<class STATE>
+void NFA<STATE>::addFinalState(STATE *state) {
+    states_.insert(state);
+    final_states_.insert(state);
+}
+
+/* operator functions */
+
+template<class T>
+std::istream &operator>>(std::istream &is, NFA<T> &nfa) {
+    if(&is == &std::cin){
+        std::cout << "Enter epsilon value: ";
+        is >> nfa.epsilon_;
+        is.ignore(reinterpret_cast<std::streamsize>(std::numeric_limits<std::streamsize>::max), '\n');
+    }
+    nfa._setNFA(is);
+    if(&is == &std::cin){
+        std::cout << "\n";
+    }
+    return is;
+}
+
+template<class T>
+std::ostream &operator<<(std::ostream &os, NFA<T> &nfa) {
+    using namespace prettyprint;
+    prettyprint::make_default();
+    os << "------------------- NFA -------------------------\n"
+       << "Symbols:\n\t" << nfa.sigma_ << "\b\n"
+       << "Starting State: " << *nfa.starting_state_ << "\n"
+       << "States:\n\t" << nfa.states_ << "\b\n"
+       << "Final states:\n\t" << nfa.final_states_ << "\b\n"
+       << "Delta Transitions:\n" << nfa.delta_
+       << "-------------------------------------------------\n";
+    return os;
+}
+
+/* getter functions */
+
 template<class T>
 std::set<T *> NFA<T>::getEpsilonClosure(std::set<T *>& states){
     std::set<T*> ans;
@@ -233,6 +292,7 @@ std::set<T *> NFA<T>::getEpsilonClosure(std::set<T *>& states){
     }
     return ans;
 }
+
 template<class T>
 std::set<T *> NFA<T>::transition(std::set<T *> states, const std::string& symbol) {
     std::set<T *> ans, temp;
@@ -248,36 +308,35 @@ std::set<T *> NFA<T>::transition(std::set<T *> states, const std::string& symbol
     }
     return ans;
 }
+
 template<class T>
 std::set<T *> NFA<T>::transition(T *state, const std::string &symbol) {
     return transition(std::set<T *>{state}, symbol);
 }
-/* operator functions */
-template<class T>
-std::istream &operator>>(std::istream &is, NFA<T> &nfa) {
-    if(&is == &std::cin){
-        std::cout << "Enter epsilon value: ";
-        is >> nfa.epsilon_;
-        is.ignore(reinterpret_cast<std::streamsize>(std::numeric_limits<std::streamsize>::max), '\n');
-    }
-    nfa._setNFA(is);
-    if(&is == &std::cin){
-        std::cout << "\n";
-    }
-    return is;
+
+template<class STATE>
+const std::set<std::string> &NFA<STATE>::getSigma() const {
+    return sigma_;
 }
-template<class T>
-std::ostream &operator<<(std::ostream &os, NFA<T> &nfa) {
-    using namespace prettyprint;
-    prettyprint::make_default();
-    os << "------------------- NFA -------------------------\n"
-       << "Symbols:\n\t" << nfa.sigma_ << "\b\n"
-       << "Starting State: " << *nfa.starting_state_ << "\n"
-       << "States:\n\t" << nfa.states_ << "\b\n"
-       << "Final states:\n\t" << nfa.final_states_ << "\b\n"
-       << "Delta Transitions:\n" << nfa.delta_
-       << "-------------------------------------------------\n";
-    return os;
+
+template<class STATE>
+const std::set<STATE *> &NFA<STATE>::getStates() const {
+    return states_;
+}
+
+template<class STATE>
+STATE *NFA<STATE>::getStartingState() const {
+    return starting_state_;
+}
+
+template<class STATE>
+const std::set<STATE *> &NFA<STATE>::getFinalStates() const {
+    return final_states_;
+}
+
+template<class STATE>
+const std::string &NFA<STATE>::getEpsilon() const {
+    return epsilon_;
 }
 
 #endif //COMPILER_ALGORITHMS_NFA_H

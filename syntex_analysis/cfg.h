@@ -10,6 +10,7 @@
 #include <set>
 #include <algorithm>
 #include <map>
+#include "../print.h"
 
 class Prod{
 private:
@@ -50,6 +51,7 @@ public:
     }
     std::vector<std::string> getTillIthPosition(int i, const std::string& epsilon){
         std::vector<std::string> str{};
+        str.reserve(i);
         for(int j = 0; j < i; j++){
             str.push_back(right_[j]);
         }
@@ -171,66 +173,6 @@ std::ostream &operator<<(std::ostream &os, const Rule &r) {
     return os;
 }
 
-namespace prettyprint{
-    std::string line_start;
-    std::string line_end;
-    void make_default(){
-        line_start = "";
-        line_end = " ";
-    }
-    template <class T>
-    inline std::ostream& operator <<(std::ostream& os, const std::vector<T>& s){
-        for(const auto& i:s){
-            os << line_start << i << line_end;
-        }
-        return os;
-    }
-    template <class T>
-    inline std::ostream& operator <<(std::ostream& os, const std::vector<T*>& s){
-        for(auto *i:s){
-            os << line_start << *i << line_end;
-        }
-        return os;
-    }
-    template <class T>
-    inline std::ostream& operator <<(std::ostream& os, const std::set<T>& s){
-        for(const auto& i:s){
-            os << line_start << i << line_end;
-        }
-        return os;
-    }
-    template <class T>
-    inline std::ostream& operator <<(std::ostream& os, const std::set<T*>& s){
-        for(auto *i:s){
-            os << line_start << *i << line_end;
-        }
-        return os;
-    }
-}
-
-namespace cfg{
-    inline std::ostream& operator <<(std::ostream& os, const std::set<Prod*>& prods){
-        for(Prod* p:prods){
-            os << *p << '\n';
-        }
-        return os;
-    }
-    inline std::ostream& operator <<(std::ostream& os, const std::vector<Rule*>& rules){
-        for(Rule* r:rules){
-            os << *r << '\n';
-        }
-        return os;
-    }
-    inline std::ostream& operator <<(std::ostream& os, const std::map<std::string, std::set<std::string>>& m){
-        prettyprint::line_start="";
-        prettyprint::line_end = " ";
-        for(const auto & i : m){
-            os << i.first << " --> "; prettyprint::operator<<(os,  i.second) << "\n";
-        }
-        prettyprint::make_default();
-        return os;
-    }
-}
 
 class CFG{
 protected:
@@ -535,7 +477,6 @@ std::string CFG::generateNewSymbol(std::string str) {
 }
 /* operator function */
 std::ostream &operator<<(std::ostream &os, const CFG &gram) {
-    using namespace cfg;
     using namespace prettyprint;
     prettyprint::line_end = "";
     prettyprint::line_end = " ";

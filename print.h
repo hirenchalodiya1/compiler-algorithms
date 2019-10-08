@@ -40,6 +40,7 @@ namespace prettyprint{
         }
         return os;
     }
+    // automatas print functions
     template <class T>
     inline std::ostream& operator <<(std::ostream& os, const std::map<T*, std::map<std::string, std::set<T*>>> & delta){
         make_default();
@@ -57,6 +58,14 @@ namespace prettyprint{
             for(auto j:i.second){
                 os << "(" << *i.first << ", " << j.first << ") --> " << *j.second << "\n";
             }
+        }
+        return os;
+    }
+    // cfg print functions
+    inline std::ostream& operator <<(std::ostream& os, const std::map<std::string, std::set<std::string>>& m){
+        make_default();
+        for(const auto & i : m){
+            os << i.first << " --> "<< i.second << "\n";
         }
         return os;
     }

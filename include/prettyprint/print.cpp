@@ -1,11 +1,9 @@
-#ifndef COMPILER_ALGORITHMS_PRINT_H
-#define COMPILER_ALGORITHMS_PRINT_H
+#ifndef COMPILER_ALGORITHMS_PRINT_CPP
+#define COMPILER_ALGORITHMS_PRINT_CPP
 
 #include <ostream>
 #include <vector>
 #include <set>
-#include <map>
-#include <automatas/dfa.h>
 
 namespace prettyprint{
     std::string line_start;
@@ -72,4 +70,4 @@ namespace prettyprint{
         return os;
     }
 }
-#endif //COMPILER_ALGORITHMS_PRINT_H
+#endif //COMPILER_ALGORITHMS_PRINT_CPP

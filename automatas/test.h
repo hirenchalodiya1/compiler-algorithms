@@ -38,9 +38,14 @@ public:
         success_ = false;
         _setDFA(is);
     }
-    explicit DFA(std::set<std::string> sigma, STATE *startingState):sigma_(std::move(sigma)),starting_state_(startingState), success_(true) {
-        states_.insert(startingState);
-    };
+    explicit DFA(std::set<std::string> sigma, STATE *startingState):sigma_(std::move(sigma)), success_(true) {
+        auto add = *startingState;
+        starting_state_ = &add;
+        for(auto*i:*starting_state_){
+            std::cout << i << " ";
+        }
+        states_.insert(&add);
+    }
     explicit operator bool(){
         return success_;
     }

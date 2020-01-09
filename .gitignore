@@ -1,19 +1,40 @@
-## IDE files
-#  CLion
-.idea/
+# Prerequisites
+*.d
 
-# CMake files
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+#  CLion files
+.idea/
 cmake-build-debug/
 
 # Input and Output Files
 input*
 output*
-
-# a.out file
-a.out
-
-# compiled header files
-*.h.gch
-
-# compiled cpp files
-*.o

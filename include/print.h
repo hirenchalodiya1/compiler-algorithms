@@ -4,6 +4,7 @@
 #include <ostream>
 #include <vector>
 #include <set>
+#include <map>
 
 namespace prettyprint{
     std::string line_start;

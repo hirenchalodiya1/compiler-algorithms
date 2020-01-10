@@ -31,10 +31,8 @@
 *.out
 *.app
 
-#  CLion files
-.idea/
+# build environment
 cmake-build-debug/
 
-# Input and Output Files
-input*
-output*
+#  CLion files
+.idea/

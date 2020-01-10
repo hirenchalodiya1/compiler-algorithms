@@ -17,10 +17,16 @@ public:
 };
 
 class LR0Parser: public Parser<AugmentedGrammar>{
+private:
+    std::set<Item*> _getClosure(Item* item);
 public:
     using Parser::Parser;
     /* override functions */
     void objectCreation() override {}
     bool checkString(std::vector<std::string> &str) override {return false;}
 };
+std::set<Item*> LR0Parser::_getClosure(Item* item){
+    return std::set<Item*>{};
+}
+
 #endif //COMPILER_ALGORITHMS_LR0PARSER_H

@@ -2,8 +2,8 @@
 // Created by hiren on 28/09/19.
 //
 
-#ifndef COMPILER_ALGORITHMS_DFA_H
-#define COMPILER_ALGORITHMS_DFA_H
+#ifndef COMPILER_ALGORITHMS_TEST_H
+#define COMPILER_ALGORITHMS_TEST_H
 #include <string>
 #include <set>
 #include <map>
@@ -281,4 +281,4 @@ T* DFA<T>::transition(T *state, const std::string &symbol) {
     return delta_[state][symbol];
 }
 
-#endif //COMPILER_ALGORITHMS_DFA_H
+#endif //COMPILER_ALGORITHMS_TEST_H

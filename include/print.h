@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <automatas/dfa.h>
 
 namespace prettyprint{
     std::string line_start;

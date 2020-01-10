@@ -17,7 +17,8 @@ private:
     void _fillTable();
     bool _checkString(std::vector<std::string> str, std::stack<std::string> st);
 public:
-    using Parser::Parser;
+    explicit PredictiveParser(const std::string& e ="?"):Parser<TopDownParsableGrammar>(e){}
+    explicit PredictiveParser(std::istream& is,const std::string& e="?"):Parser<TopDownParsableGrammar>(is, e){}
     /* override functions */
     bool checkString(std::vector<std::string>& str) override;
     void objectCreation() override;

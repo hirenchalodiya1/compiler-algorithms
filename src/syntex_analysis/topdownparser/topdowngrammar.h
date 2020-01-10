@@ -18,9 +18,11 @@ private:
     void _removeLeftFactoring(const std::string& str);
     void _removeLeftFactoring();
 public:
-    using  CFG::CFG;
+    explicit TopDownParsableGrammar(const std::string& e="ep"):CFG(e){}
+    explicit TopDownParsableGrammar(std::istream& is,const std::string& e="ep"):CFG(is, e){}
     /* override function */
     void objectCreation() override {
+        std::cout << "here";
         _removeLeftRecursion();
         _removeLeftFactoring();
         _convertProdToRule();

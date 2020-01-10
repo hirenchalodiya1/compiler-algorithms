@@ -173,6 +173,18 @@ std::ostream &operator<<(std::ostream &os, const Rule &r) {
     return os;
 }
 
+inline std::ostream& operator <<(std::ostream& os, const std::set<Prod*>& prods){
+    for(Prod* p:prods){
+        os << *p << '\n';
+    }
+    return os;
+}
+inline std::ostream& operator <<(std::ostream& os, const std::vector<Rule*>& rules){
+    for(Rule* r:rules){
+        os << *r << '\n';
+    }
+    return os;
+}
 
 class CFG{
 protected:

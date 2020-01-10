@@ -29,8 +29,11 @@ public:
     }
     /* virtual functions */
     virtual bool checkString(std::vector<std::string>& str)=0;
-    virtual void objectCreation(){};
+    virtual void objectCreation()=0;
     /* public functions */
+    T *getGram() const {
+        return gram_;
+    }
     void checkFile(std::istream& is){
         std::string str, temp;
         std::vector<std::string> v;

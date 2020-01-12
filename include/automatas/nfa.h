@@ -5,7 +5,9 @@
 #include <string>
 #include <set>
 #include <map>
+#include <stack>
 #include <ostream>
+
 template <class STATE, class ALPHABET=std::string>
 class NFA{
 private:
@@ -111,5 +113,34 @@ public:
         return sigma_.find(alphabet) != sigma_.end() or alphabet == epsilon_;
     }
 
+    std::set<STATE> getEpsilonClosure(std::set<STATE>& state);
+
+    std::set<STATE> &getTransition(const STATE &state,const ALPHABET &alphabet){
+        return delta_[state][alphabet];
+    }
 };
+
+
+template <class STATE, class ALPHABET>
+std::set<STATE> NFA<STATE, ALPHABET>::getEpsilonClosure(std::set<STATE>& states)  {
+    std::set<STATE> ans;
+    ans.clear();
+    std::stack<STATE> st;
+    STATE temp;
+    for(auto i:states){
+        ans.insert(i);
+        st.push(i);
+    }
+    while(!st.empty()){
+        temp = st.top();
+        st.pop();
+        for(STATE i:delta_[temp][epsilon_]){
+            if(ans.find(i) == ans.end()){
+                ans.insert(i);
+                st.push(i);
+            }
+        }
+    }
+    return ans;
+}
 #endif //COMPILER_ALGORITHMS_NFA_H

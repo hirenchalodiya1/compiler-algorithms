@@ -5,8 +5,8 @@
 #ifndef COMPILER_ALGORITHMS_CONVERT_H
 #define COMPILER_ALGORITHMS_CONVERT_H
 
-#include "test.h"
-#include "nfa.h"
+#include "dfa_generic.h"
+#include "nfa_generic.h"
 #include <set>
 
 namespace convert{

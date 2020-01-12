@@ -13,7 +13,7 @@
 #include <limits>
 #include <stack>
 #include <utility>
-#include "../print.h"
+#include "../../libs/prettyprint/include/print.h"
 
 template <class STATE>
 class NFA{

@@ -1,7 +1,3 @@
-//
-// Created by hiren on 09/01/20.
-//
-
 #ifndef COMPILER_ALGORITHMS_DFA_H
 #define COMPILER_ALGORITHMS_DFA_H
 
@@ -101,6 +97,14 @@ public:
         return delta_[state][alphabet];
     }
 
+    /* additional functions */
+    bool isValidState(const STATE& state){
+        return states_.find(state) != states_.end();
+    }
+
+    bool isValidAlphabet(const ALPHABET& alphabet){
+        return sigma_.find(alphabet) != sigma_.end();
+    }
 };
 
 

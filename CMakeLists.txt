@@ -13,7 +13,7 @@ include_directories(include)
 
 # targets
 add_executable(dfa tests/automatas/dfa.cpp)
-add_executable(test tests/test.cpp)
+add_executable(nfa tests/automatas/nfa.cpp)
 
 # external libraries
 

@@ -9,8 +9,8 @@ using namespace prettyprint;
 int main() {
     ifstream fin;
     fin.open("../tests/inputs/nfa_in");
-    NFA<string, string> dfa = createNFA(fin);
-    cout << dfa;
+    NFA<string, string> nfa = createNFA(fin);
+    cout << nfa;
     fin.close();
     return 0;
 }

@@ -6,6 +6,7 @@
 #include <set>
 #include <map>
 #include <automatas/dfa.h>
+#include <automatas/nfa.h>
 
 namespace prettyprint{
     std::string line_start;
@@ -76,6 +77,19 @@ namespace prettyprint{
            << "States:\n\t" << dfa.getStates() << "\b\n"
            << "Final states:\n\t" << dfa.getFinalStates() << "\b\n"
            << "Delta Transitions:\n" << dfa.getDelta()
+           << "---------------------------------------------------------------\n";
+        return os;
+    }
+
+    template<class STATE, class ALPHABET>
+    std::ostream&operator<<(std::ostream &os, NFA<STATE, ALPHABET> &nfa){
+        make_default();
+        os << "------------------------------NFA------------------------------\n"
+           << "Symbols:\n\t" << nfa.getSigma() << "\b\n"
+           << "Starting State: " << nfa.getStartingState() << "\n"
+           << "States:\n\t" << nfa.getStates() << "\b\n"
+           << "Final states:\n\t" << nfa.getFinalStates() << "\b\n"
+           << "Delta Transitions:\n" << nfa.getDelta()
            << "---------------------------------------------------------------\n";
         return os;
     }

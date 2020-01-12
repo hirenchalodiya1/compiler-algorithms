@@ -1,9 +1,5 @@
-Basic
-TODO: Make print module
-TODO: Make dfa automata complete
-TODO: Link Makefiles
-TODO: clear project structure
-TODO: All test folder
+Basic:
+TODO: complete NFA to DFA conversion
 
 Advance
 TODO: Memory management i.e free memory while deleting element

@@ -1,0 +1,12 @@
+0 1
+A B C D E F
+A
+F
+A , 0 - F C
+A , ? - B F
+B , 1 - C
+C , ? - D
+D , 0 - E
+D , 1 - A
+E , 0 - A
+E , ? - B F

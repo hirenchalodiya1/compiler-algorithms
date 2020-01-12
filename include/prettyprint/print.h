@@ -4,6 +4,8 @@
 #include <ostream>
 #include <vector>
 #include <set>
+#include <map>
+#include <automatas/dfa.h>
 
 namespace prettyprint{
     std::string line_start;
@@ -12,6 +14,8 @@ namespace prettyprint{
         line_start = "";
         line_end = " ";
     }
+
+    // vector print
     template <class T>
     inline std::ostream& operator <<(std::ostream& os, const std::vector<T>& s){
         for(const auto& i:s){
@@ -26,6 +30,7 @@ namespace prettyprint{
         }
         return os;
     }
+    // set print
     template <class T>
     inline std::ostream& operator <<(std::ostream& os, const std::set<T>& s){
         for(const auto& i:s){
@@ -40,7 +45,7 @@ namespace prettyprint{
         }
         return os;
     }
-    // automatas print functions
+    // automatas print functions --> delta
     template <class T>
     inline std::ostream& operator <<(std::ostream& os, const std::map<T*, std::map<std::string, std::set<T*>>> & delta){
         make_default();
@@ -69,5 +74,21 @@ namespace prettyprint{
         }
         return os;
     }
+    template<class STATE, class ALPHABET>
+    std::ostream&operator<<(std::ostream& os, DFA<STATE, ALPHABET>& dfa){
+        if(not dfa){
+            os << "Nothing to print here";
+            return os;
+        }
+        os << "------------------------------DFA------------------------------"
+           << "Symbols:\n\t" << dfa.getSigma() << "\b\n"
+           << "Starting State: " << dfa.getStartingState() << "\n"
+           << "States:\n\t" << dfa.getStates() << "\b\n"
+           << "Final states:\n\t" << dfa.getFinalStates() << "\b\n"
+//           << "Delta Transitions:\n" << dfa.getDelta()
+           << "---------------------------------------------------------------";
+        return os;
+    }
 }
+
 #endif //COMPILER_ALGORITHMS_PRINT_CPP

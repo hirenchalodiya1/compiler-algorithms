@@ -46,47 +46,46 @@ namespace prettyprint{
         return os;
     }
     // automatas print functions --> delta
-    template <class T>
-    inline std::ostream& operator <<(std::ostream& os, const std::map<T*, std::map<std::string, std::set<T*>>> & delta){
+    template <class STATE, class ALPHABET>
+    inline std::ostream& operator <<(std::ostream& os, const std::map<STATE, std::map<ALPHABET, std::set<STATE>>> & delta){
         make_default();
         for(auto i:delta){
             for(auto j:i.second){
-                os << "(" << *i.first << ", " << j.first << ") --> " << j.second << "\b\n";
+                os << "(" << i.first << ", " << j.first << ") --> " << j.second << "\b\n";
             }
         }
         return os;
     }
-    template <class T>
-    inline std::ostream& operator <<(std::ostream& os, const std::map<T*, std::map<std::string, T*>> & delta){
+    template <class STATE, class ALPHABET>
+    inline std::ostream& operator <<(std::ostream& os, const std::map<STATE, std::map<ALPHABET, STATE>> & delta){
         make_default();
         for(auto i:delta){
             for(auto j:i.second){
-                os << "(" << *i.first << ", " << j.first << ") --> " << *j.second << "\n";
+                os << "(" << i.first << ", " << j.first << ") --> " << j.second << "\n";
             }
         }
         return os;
     }
-    // cfg print functions
-    inline std::ostream& operator <<(std::ostream& os, const std::map<std::string, std::set<std::string>>& m){
-        make_default();
-        for(const auto & i : m){
-            os << i.first << " --> "<< i.second << "\n";
-        }
-        return os;
-    }
+
     template<class STATE, class ALPHABET>
     std::ostream&operator<<(std::ostream& os, DFA<STATE, ALPHABET>& dfa){
-        if(not dfa){
-            os << "Nothing to print here";
-            return os;
-        }
-        os << "------------------------------DFA------------------------------"
+        make_default();
+        os << "------------------------------DFA------------------------------\n"
            << "Symbols:\n\t" << dfa.getSigma() << "\b\n"
            << "Starting State: " << dfa.getStartingState() << "\n"
            << "States:\n\t" << dfa.getStates() << "\b\n"
            << "Final states:\n\t" << dfa.getFinalStates() << "\b\n"
-//           << "Delta Transitions:\n" << dfa.getDelta()
-           << "---------------------------------------------------------------";
+           << "Delta Transitions:\n" << dfa.getDelta()
+           << "---------------------------------------------------------------\n";
+        return os;
+    }
+
+    // cfg print functions
+    inline std::ostream& operator <<(std::ostream& os, const std::map<std::string, std::set<std::string>>& m) {
+        make_default();
+        for (const auto &i : m) {
+            os << i.first << " --> " << i.second << "\n";
+        }
         return os;
     }
 }

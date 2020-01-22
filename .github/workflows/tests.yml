@@ -1,0 +1,25 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup build environment
+        run: mkdir build
+
+      - name: Generate Make file
+        working-directory: ./build
+        run: cmake ..
+
+      - name: Make file
+        working-directory: ./build
+        run: make all
+
+      - name: Test cases
+        working-directory: ./build
+        run: make test

@@ -1,5 +1,5 @@
 # CMake version
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.12)
 # project name
 project(compiler_algorithms VERSION 1.0.0 DESCRIPTION "Different compiler algorithms")
 
@@ -20,3 +20,7 @@ add_executable(dev_test tests/test.cpp)
 # external libraries
 
 # unit testing
+enable_testing()
+add_test(dfa_test dfa)
+add_test(nfa_test nfa)
+add_test(nfa_to_dfa_test nfa_to_dfa)

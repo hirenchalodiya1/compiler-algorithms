@@ -1,41 +1,29 @@
-#include <iostream>
-#include <utility>
-using namespace std;
-class object{
-private:
-    string st;
-public:
-    explicit object(string str):st(std::move(str)){}
-    friend ostream&operator<<(ostream& os,const  object& obj){
-        os << obj.st << " ";
-        return os;
-    }
-};
-class class1{
-public:
-    object* obj;
-public:
-    explicit class1(string str){
-        obj = new object(std::move(str));
-    }
-    friend ostream&operator<<(ostream& os,const  class1& class11){
-        os << *class11.obj << " ";
-        return os;
-    }
-};
-class class2{
-private:
-    object* obj;
-public:
-    explicit class2(class1* obj):obj(obj->obj){}
-    friend ostream&operator<<(ostream& os,const  class2& class12){
-        os << *class12.obj << " ";
-        return os;
-    }
-};
-int main(int n, char** c) {
-    class1 cl("hello");
-    class2* cls2 = new class2(&cl);
-    cout << *cls2;
-    return 0;
+#define ASSERT_THROW( condition )                             \
+{                                                                   \
+  if( !( condition ) )                                              \
+  {                                                                 \
+    throw std::runtime_error(   std::string( __FILE__ )             \
+                              + std::string( ":" )                  \
+                              + std::to_string( __LINE__ )          \
+                              + std::string( " in " )               \
+                              + std::string( __PRETTY_FUNCTION__ )  \
+    );                                                              \
+  }                                                                 \
+}
+
+#define ASSERT_STR_STREAM_AND_FILE( x , y )                                   \
+{                                                                             \
+    std::ifstream expected_out; expected_out.open( y );                       \
+    std::string expected_str( (std::istreambuf_iterator<char>(expected_out)), \
+    std::istreambuf_iterator<char>());                                        \
+    expected_out.close();                                                     \
+    if( ( x.str() ) != ( expected_str ) )                                     \
+    {                                                                         \
+        throw std::runtime_error(   std::string( __FILE__ )                   \
+                                  + std::string( ":" )                        \
+                                  + std::to_string( __LINE__ )                \
+                                  + std::string( " in " )                     \
+                                  + std::string( __PRETTY_FUNCTION__ )        \
+            );                                                                \
+    }                                                                         \
 }
